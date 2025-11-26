@@ -570,12 +570,12 @@ static const yytype_int16 yyrline[] =
        0,    45,    45,    45,    52,    53,    55,    56,    58,    67,
       79,    94,    95,    96,    98,    99,   101,   101,   115,   116,
      118,   127,   137,   139,   140,   142,   143,   145,   146,   147,
-     148,   149,   151,   152,   154,   161,   167,   167,   173,   173,
-     182,   183,   185,   186,   192,   207,   208,   215,   216,   223,
-     224,   231,   232,   239,   240,   247,   248,   255,   256,   257,
-     261,   274,   285,   286,   288,   289,   291,   292,   294,   295,
-     297,   298,   299,   300,   302,   303,   305,   306,   308,   309,
-     310
+     148,   149,   151,   152,   154,   160,   166,   166,   172,   172,
+     181,   182,   184,   185,   191,   206,   207,   214,   215,   222,
+     223,   230,   231,   238,   239,   246,   247,   254,   255,   256,
+     260,   273,   284,   285,   287,   288,   290,   291,   293,   294,
+     296,   297,   298,   299,   301,   302,   304,   305,   307,   308,
+     309
 };
 #endif
 
@@ -1405,36 +1405,35 @@ yyreduce:
 #line 154 "src/asin.y"
                                                  {
                         SIMB simb = obtTdS((yyvsp[-2].ident));
-                        //mostrarTdS();
                         if (simb.t != T_ENTERO) {
                             yyerror("El argumento del read debe ser de tipo simple");
                         }
                     }
-#line 1414 "asin.c"
+#line 1413 "asin.c"
     break;
 
   case 35: /* instEntSal: PRINT_ PARA_ expre PARC_ PYC_  */
-#line 161 "src/asin.y"
+#line 160 "src/asin.y"
                                                     {
                         if ((yyvsp[-2].tCons).tipo != T_ENTERO) {
                             yyerror("La expresion del print debe ser de tipo simple");
                         }
                     }
-#line 1424 "asin.c"
+#line 1423 "asin.c"
     break;
 
   case 36: /* $@3: %empty  */
-#line 167 "src/asin.y"
+#line 166 "src/asin.y"
                                              {
                         if ((yyvsp[-1].tCons).tipo != T_LOGICO) {
                             yyerror("La expresion del if debe ser logica");
                         }
                     }
-#line 1434 "asin.c"
+#line 1433 "asin.c"
     break;
 
   case 38: /* $@4: %empty  */
-#line 173 "src/asin.y"
+#line 172 "src/asin.y"
                                                                        {
                         if ((yyvsp[-5].tCons).tipo != T_ENTERO || (yyvsp[-1].tCons).tipo != T_ENTERO) {
                             yyerror("La expreOp del for debe ser de tipo simple");
@@ -1443,40 +1442,40 @@ yyreduce:
                             yyerror("La expresion del for debe ser logica");
                         }
                     }
-#line 1447 "asin.c"
+#line 1446 "asin.c"
     break;
 
   case 40: /* expreOP: %empty  */
-#line 182 "src/asin.y"
+#line 181 "src/asin.y"
                       { (yyval.tCons).tipo = T_ENTERO; }
-#line 1453 "asin.c"
+#line 1452 "asin.c"
     break;
 
   case 41: /* expreOP: expre  */
-#line 183 "src/asin.y"
+#line 182 "src/asin.y"
                             { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1459 "asin.c"
+#line 1458 "asin.c"
     break;
 
   case 42: /* expre: expreLogic  */
-#line 185 "src/asin.y"
+#line 184 "src/asin.y"
                                  { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1465 "asin.c"
+#line 1464 "asin.c"
     break;
 
   case 43: /* expre: ID_ ASIG_ expre  */
-#line 186 "src/asin.y"
+#line 185 "src/asin.y"
                                       {
                         SIMB simb = obtTdS((yyvsp[-2].ident));
                         if (simb.t != (yyvsp[0].tCons).tipo) {
                             yyerror("Los tipos en la asignación no coinciden");
                         }
                     }
-#line 1476 "asin.c"
+#line 1475 "asin.c"
     break;
 
   case 44: /* expre: ID_ CORA_ expre CORC_ ASIG_ expre  */
-#line 192 "src/asin.y"
+#line 191 "src/asin.y"
                                                         {
                         if ((yyvsp[-3].tCons).tipo != T_ENTERO) {
                             yyerror("El indice del array debe ser entero");
@@ -1491,134 +1490,134 @@ yyreduce:
                             }
                         }
                     }
-#line 1495 "asin.c"
+#line 1494 "asin.c"
     break;
 
   case 45: /* expreLogic: expreIgual  */
-#line 207 "src/asin.y"
+#line 206 "src/asin.y"
                                  { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1501 "asin.c"
+#line 1500 "asin.c"
     break;
 
   case 46: /* expreLogic: expreLogic opLogic expreIgual  */
-#line 208 "src/asin.y"
+#line 207 "src/asin.y"
                                                     {
                         if ((yyvsp[-2].tCons).tipo != (yyvsp[0].tCons).tipo) {
                             yyerror("Los tipos de la expresión Logic no coinciden");
                         }
                         (yyval.tCons) = (yyvsp[-1].tCons);
                     }
-#line 1512 "asin.c"
+#line 1511 "asin.c"
     break;
 
   case 47: /* expreIgual: expreRel  */
-#line 215 "src/asin.y"
+#line 214 "src/asin.y"
                                { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1518 "asin.c"
+#line 1517 "asin.c"
     break;
 
   case 48: /* expreIgual: expreIgual opIgual expreRel  */
-#line 216 "src/asin.y"
+#line 215 "src/asin.y"
                                                   {
                         if ((yyvsp[-2].tCons).tipo != (yyvsp[0].tCons).tipo) {
                             yyerror("Los tipos de la expresión Igual no coinciden");
                         }
                         (yyval.tCons) = (yyvsp[-1].tCons);
                     }
-#line 1529 "asin.c"
+#line 1528 "asin.c"
     break;
 
   case 49: /* expreRel: expreAd  */
-#line 223 "src/asin.y"
+#line 222 "src/asin.y"
                               { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1535 "asin.c"
+#line 1534 "asin.c"
     break;
 
   case 50: /* expreRel: expreRel opRel expreAd  */
-#line 224 "src/asin.y"
+#line 223 "src/asin.y"
                                              {
                         if ((yyvsp[-2].tCons).tipo != (yyvsp[0].tCons).tipo) {
                             yyerror("Los tipos de la expresión Rel no coinciden");
                         }
                         (yyval.tCons) = (yyvsp[-1].tCons);
                     }
-#line 1546 "asin.c"
+#line 1545 "asin.c"
     break;
 
   case 51: /* expreAd: expreMul  */
-#line 231 "src/asin.y"
+#line 230 "src/asin.y"
                                { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1552 "asin.c"
+#line 1551 "asin.c"
     break;
 
   case 52: /* expreAd: expreAd opAd expreMul  */
-#line 232 "src/asin.y"
+#line 231 "src/asin.y"
                                             {
                         if ((yyvsp[-2].tCons).tipo != (yyvsp[-1].tCons).tipo || (yyvsp[-2].tCons).tipo != (yyvsp[0].tCons).tipo) {
                             yyerror("Los tipos de la expresión Ad no coinciden");
                         }
                         (yyval.tCons) = (yyvsp[-1].tCons);
                     }
-#line 1563 "asin.c"
+#line 1562 "asin.c"
     break;
 
   case 53: /* expreMul: expreUna  */
-#line 239 "src/asin.y"
+#line 238 "src/asin.y"
                                { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1569 "asin.c"
+#line 1568 "asin.c"
     break;
 
   case 54: /* expreMul: expreMul opMul expreUna  */
-#line 240 "src/asin.y"
+#line 239 "src/asin.y"
                                               {
                         if ((yyvsp[-2].tCons).tipo != (yyvsp[-1].tCons).tipo || (yyvsp[-2].tCons).tipo != (yyvsp[0].tCons).tipo) {
                             yyerror("Los tipos de la expresión Mul no coinciden");
                         }
                         (yyval.tCons) = (yyvsp[-1].tCons);
                     }
-#line 1580 "asin.c"
+#line 1579 "asin.c"
     break;
 
   case 55: /* expreUna: expreSufi  */
-#line 247 "src/asin.y"
+#line 246 "src/asin.y"
                                 { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1586 "asin.c"
+#line 1585 "asin.c"
     break;
 
   case 56: /* expreUna: opUna expreUna  */
-#line 248 "src/asin.y"
+#line 247 "src/asin.y"
                                      {
                         if ((yyvsp[-1].tCons).tipo != (yyvsp[0].tCons).tipo) {
                             yyerror("Los tipos de la expresión Una no coinciden");
                         }
                         (yyval.tCons) = (yyvsp[-1].tCons);
                     }
-#line 1597 "asin.c"
+#line 1596 "asin.c"
     break;
 
   case 57: /* expreSufi: const  */
-#line 255 "src/asin.y"
+#line 254 "src/asin.y"
                             { (yyval.tCons) = (yyvsp[0].tCons); }
-#line 1603 "asin.c"
+#line 1602 "asin.c"
     break;
 
   case 58: /* expreSufi: PARA_ expre PARC_  */
-#line 256 "src/asin.y"
+#line 255 "src/asin.y"
                                         { (yyval.tCons) = (yyvsp[-1].tCons);}
-#line 1609 "asin.c"
+#line 1608 "asin.c"
     break;
 
   case 59: /* expreSufi: ID_  */
-#line 257 "src/asin.y"
+#line 256 "src/asin.y"
                           { 
                         SIMB simb = obtTdS((yyvsp[0].ident));
                         (yyval.tCons).tipo = simb.t;
                     }
-#line 1618 "asin.c"
+#line 1617 "asin.c"
     break;
 
   case 60: /* expreSufi: ID_ CORA_ expre CORC_  */
-#line 261 "src/asin.y"
+#line 260 "src/asin.y"
                                             {
                         if ((yyvsp[-1].tCons).tipo != T_ENTERO) {
                             yyerror("No se puede indexar un array con un booleano");
@@ -1632,11 +1631,11 @@ yyreduce:
                             (yyval.tCons).tipo = dim.telem;  
                         }
                     }
-#line 1636 "asin.c"
+#line 1635 "asin.c"
     break;
 
   case 61: /* expreSufi: ID_ PARA_ paramAct PARC_  */
-#line 274 "src/asin.y"
+#line 273 "src/asin.y"
                                                {
                         SIMB simb = obtTdS((yyvsp[-3].ident));
                         if (simb.t == T_ERROR) {
@@ -1647,101 +1646,101 @@ yyreduce:
                             (yyval.tCons).tipo = inf.tipo; 
                         }
                     }
-#line 1651 "asin.c"
+#line 1650 "asin.c"
     break;
 
   case 66: /* opLogic: AND_  */
-#line 291 "src/asin.y"
+#line 290 "src/asin.y"
                            { (yyval.tCons).tipo = T_LOGICO; }
-#line 1657 "asin.c"
+#line 1656 "asin.c"
     break;
 
   case 67: /* opLogic: OR_  */
-#line 292 "src/asin.y"
+#line 291 "src/asin.y"
                           { (yyval.tCons).tipo = T_LOGICO; }
-#line 1663 "asin.c"
+#line 1662 "asin.c"
     break;
 
   case 68: /* opIgual: EQUAL_  */
-#line 294 "src/asin.y"
+#line 293 "src/asin.y"
                              { (yyval.tCons).tipo = T_LOGICO; }
-#line 1669 "asin.c"
+#line 1668 "asin.c"
     break;
 
   case 69: /* opIgual: NEQUAL_  */
-#line 295 "src/asin.y"
+#line 294 "src/asin.y"
                               { (yyval.tCons).tipo = T_LOGICO; }
-#line 1675 "asin.c"
+#line 1674 "asin.c"
     break;
 
   case 70: /* opRel: MAYOR_  */
-#line 297 "src/asin.y"
+#line 296 "src/asin.y"
                              { (yyval.tCons).tipo = T_LOGICO; }
-#line 1681 "asin.c"
+#line 1680 "asin.c"
     break;
 
   case 71: /* opRel: MENOR_  */
-#line 298 "src/asin.y"
+#line 297 "src/asin.y"
                              { (yyval.tCons).tipo = T_LOGICO; }
-#line 1687 "asin.c"
+#line 1686 "asin.c"
     break;
 
   case 72: /* opRel: MAIG_  */
-#line 299 "src/asin.y"
+#line 298 "src/asin.y"
                             { (yyval.tCons).tipo = T_LOGICO; }
-#line 1693 "asin.c"
+#line 1692 "asin.c"
     break;
 
   case 73: /* opRel: MEIG_  */
-#line 300 "src/asin.y"
+#line 299 "src/asin.y"
                             { (yyval.tCons).tipo = T_LOGICO; }
-#line 1699 "asin.c"
+#line 1698 "asin.c"
     break;
 
   case 74: /* opAd: MAS_  */
-#line 302 "src/asin.y"
+#line 301 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1705 "asin.c"
+#line 1704 "asin.c"
     break;
 
   case 75: /* opAd: MENOS_  */
-#line 303 "src/asin.y"
+#line 302 "src/asin.y"
                              { (yyval.tCons).tipo = T_ENTERO; }
-#line 1711 "asin.c"
+#line 1710 "asin.c"
     break;
 
   case 76: /* opMul: POR_  */
-#line 305 "src/asin.y"
+#line 304 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1717 "asin.c"
+#line 1716 "asin.c"
     break;
 
   case 77: /* opMul: DIV_  */
-#line 306 "src/asin.y"
+#line 305 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1723 "asin.c"
+#line 1722 "asin.c"
     break;
 
   case 78: /* opUna: MAS_  */
-#line 308 "src/asin.y"
+#line 307 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1729 "asin.c"
+#line 1728 "asin.c"
     break;
 
   case 79: /* opUna: MENOS_  */
-#line 309 "src/asin.y"
+#line 308 "src/asin.y"
                              { (yyval.tCons).tipo = T_ENTERO; }
-#line 1735 "asin.c"
+#line 1734 "asin.c"
     break;
 
   case 80: /* opUna: EXCL_  */
-#line 310 "src/asin.y"
+#line 309 "src/asin.y"
                             { (yyval.tCons).tipo = T_LOGICO; }
-#line 1741 "asin.c"
+#line 1740 "asin.c"
     break;
 
 
-#line 1745 "asin.c"
+#line 1744 "asin.c"
 
       default: break;
     }
@@ -1934,5 +1933,5 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 313 "src/asin.y"
+#line 312 "src/asin.y"
 
