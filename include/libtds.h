@@ -43,6 +43,8 @@ typedef struct inf  /* Estructura para las funciones                         */
 int dvar;                     /* Desplazamiento en el Segmento de Variables  */
 int niv;                      /* Nivel de anidamiento "global" o "local"     */
 
+int dvarAnt;
+
 /************************************* Operaciones para la gestion de la TDS */
 void cargaContexto (int n) ;
 /* Crea el contexto necesario para los objetos globales y para los objetos 
