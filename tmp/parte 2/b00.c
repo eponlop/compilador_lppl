@@ -1,5 +1,6 @@
 // Ejemplo con errores lexicos y falta de "main": 2 errores
 //---------------------------------------------------------
+int a = 7;
 int principal ( )
 {
   int  aAa123_2016;

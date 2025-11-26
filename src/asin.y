@@ -42,7 +42,7 @@
 
 %%
 
-programa            : { niv = 0; dvar = 0; cargaContexto(niv); } listDecla {
+programa            : { niv = 0; dvar = 0; dvarAnt = 0; cargaContexto(niv); } listDecla {
                         SIMB mainFun = obtTdS("main");
                         if (mainFun.t != FUNCION) {
                             yyerror("No existe la función main");
@@ -98,20 +98,19 @@ const               : CTE_ { $$.tipo = T_ENTERO; $$.valor = $1; }
 tipoSimp            : INT_ { $$ = T_ENTERO; }
                     | BOOL_ { $$ = T_LOGICO; }
                     ;
-declaFunc           : tipoSimp ID_ { niv++; cargaContexto(niv); dvar = 0; } PARA_ paramForm PARC_ bloque
+declaFunc           : tipoSimp ID_ { niv++; cargaContexto(niv); dvarAnt = dvar; dvar = 0; } PARA_ paramForm PARC_ bloque
                     {
                         if ($7.tipo != $1) {
                             yyerror("El tipo de retorno no coincide con el de la función");
                         }
-                        //mostrarTdS();
                         descargaContexto(niv);
                         niv--;
-                        int refe = $5;
-                        if(!insTdS($2, FUNCION, $1, niv, dvar, refe)) {
+                        dvar = dvarAnt;
+                        /*int refe = $5;
+                        if(!insTdS($2, FUNCION, $1, niv, 0, refe)) {
                             yyerror("La función ya existe");
-                        } else {
-                            //mostrarTdS();
-                        }
+                        }*/
+                        mostrarTdS();
                     }
                     ;
 paramForm           : { $$ = insTdD(-1, T_VACIO); }
@@ -189,16 +188,20 @@ expre               : expreLogic { $$ = $1; }
                         if (simb.t != $3.tipo) {
                             yyerror("Los tipos en la asignación no coinciden");
                         }
-                        $$.tipo = T_ERROR;  
                     }
                     | ID_ CORA_ expre CORC_ ASIG_ expre {
-                        SIMB simb = obtTdS($1);
-                        DIM dim = obtTdA(simb.ref);
-                        if (dim.telem != $6.tipo) {
-                            yyerror("El tipo del array no coincide con el de la variable");
+                        if ($3.tipo != T_ENTERO) {
+                            yyerror("El indice del array debe ser entero");
                         }
-
-                        $$.tipo = T_ERROR; 
+                        SIMB simb = obtTdS($1);
+                        if (simb.t != T_ARRAY) {
+                            yyerror("La variable debe ser de tipo array");
+                        } else {
+                            DIM dim = obtTdA(simb.ref);
+                            if (dim.telem != $6.tipo) {
+                                yyerror("El tipo del array no coincide con el de la variable");
+                            }
+                        }
                     }
                     ;
 expreLogic          : expreIgual { $$ = $1; }
@@ -256,14 +259,27 @@ expreSufi           : const { $$ = $1; }
                         $$.tipo = simb.t;
                     }
                     | ID_ CORA_ expre CORC_ {
+                        if ($3.tipo != T_ENTERO) {
+                            yyerror("No se puede indexar un array con un booleano");
+                        }
                         SIMB simb = obtTdS($1);
-                        DIM dim = obtTdA(simb.ref);
-                        $$.tipo = dim.telem;  
+                        if (simb.t != T_ARRAY) {
+                            yyerror("La variable debe ser de tipo array");
+                            $$.tipo = T_ERROR;
+                        } else {
+                            DIM dim = obtTdA(simb.ref);
+                            $$.tipo = dim.telem;  
+                        }
                     }
                     | ID_ PARA_ paramAct PARC_ {
                         SIMB simb = obtTdS($1);
-                        INF inf = obtTdD(simb.ref);
-                        $$.tipo = inf.tipo; 
+                        if (simb.t == T_ERROR) {
+                            yyerror("La función no está declarada");
+                            $$.tipo = T_ERROR;
+                        } else {
+                            INF inf = obtTdD(simb.ref);
+                            $$.tipo = inf.tipo; 
+                        }
                     }
                     ;
 paramAct            : 
