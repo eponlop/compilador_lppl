@@ -1,0 +1,297 @@
+/*****************************************************************************/
+/**  Ejemplo de BISON-I: S E M - 2          jbenedi@dsic.upv.es>     V. 24  **/
+/*****************************************************************************/
+%{
+#include <stdio.h>
+#include "header.h"
+#include "libtds.h"
+
+%}
+
+%token MAS_ MENOS_ POR_ DIV_ PARA_ PARC_ AND_ OR_ EQUAL_ NEQUAL_ MAYOR_ MENOR_ MAIG_ MEIG_ EXCL_ ASIG_ TRUE_ FALSE_ FOR_ IF_ ELSE_ CORA_ CORC_ LLAA_ LLAC_ READ_ PRINT_ RETURN_ PYC_ COMA_ INT_ BOOL_ 
+%token <ident> ID_ 
+%token <ent> CTE_
+
+%type <tCons> const
+%type <ent> tipoSimp
+%type <ent> paramForm
+%type <ent> listParamForm
+%type <tCons> bloque
+%type <tCons> expreOP
+%type <tCons> expre
+%type <tCons> expreLogic
+%type <tCons> expreIgual
+%type <tCons> expreRel
+%type <tCons> expreAd
+%type <tCons> expreMul
+%type <tCons> expreUna
+%type <tCons> expreSufi
+%type <tCons> opLogic
+%type <tCons> opIgual
+%type <tCons> opRel
+%type <tCons> opAd
+%type <tCons> opMul
+%type <tCons> opUna
+
+%union {
+    char *ident;
+    int ent;
+    TCONS tCons;
+
+}
+
+%%
+
+programa            : { niv = 0; dvar = 0; cargaContexto(niv); } listDecla {
+                        SIMB mainFun = obtTdS("main");
+                        if (mainFun.t != FUNCION) {
+                            yyerror("No existe la función main");
+                        }
+                    }
+                    ;
+listDecla           : decla
+                    | listDecla decla
+                    ;
+decla               : declaVar
+                    | declaFunc
+                    ;
+declaVar            : tipoSimp ID_ PYC_
+                    {
+                        int refe = -1;
+                        if(!insTdS($2, VARIABLE, $1, niv, dvar, refe)) {
+                            yyerror("La variable ya existe");
+                        } else {
+                            dvar += TALLA_TIPO_SIMPLE;
+                        }
+                    }
+                    | tipoSimp ID_ ASIG_ const PYC_
+                    {
+                        if ($1 != $4.tipo) {
+                            yyerror("Los tipos no coinciden");
+                        }
+                        int refe = -1;
+                        if(!insTdS($2, VARIABLE, $1, niv, dvar, refe)) {
+                            yyerror("La variable ya existe");
+                        } else {
+                            dvar += TALLA_TIPO_SIMPLE;
+                        }
+                    }
+                    | tipoSimp ID_ CORA_ CTE_ CORC_ PYC_
+                    {
+                        if($4 <= 0) {
+                            yyerror("La dimension del vector debe ser mayor que 0");
+                        }
+                        int refe = insTdA($1, $4);
+                        if(!insTdS($2, VARIABLE, T_ARRAY, niv, dvar, refe)) {
+                            yyerror("El vector ya existe");
+                        }
+                        else {
+                            dvar += $4 * TALLA_TIPO_SIMPLE;
+                        }
+                    }
+                    
+                    ;
+const               : CTE_ { $$.tipo = T_ENTERO; $$.valor = $1; }
+                    | TRUE_ { $$.tipo = T_LOGICO; $$.valor = 1; }
+                    | FALSE_ { $$.tipo = T_LOGICO; $$.valor = 0; }
+                    ;
+tipoSimp            : INT_ { $$ = T_ENTERO; }
+                    | BOOL_ { $$ = T_LOGICO; }
+                    ;
+declaFunc           : tipoSimp ID_ { niv++; cargaContexto(niv); dvar = 0; } PARA_ paramForm PARC_ bloque
+                    {
+                        if ($7.tipo != $1) {
+                            yyerror("El tipo de retorno no coincide con el de la función");
+                        }
+                        //mostrarTdS();
+                        descargaContexto(niv);
+                        niv--;
+                        int refe = $5;
+                        if(!insTdS($2, FUNCION, $1, niv, dvar, refe)) {
+                            yyerror("La función ya existe");
+                        } else {
+                            //mostrarTdS();
+                        }
+                    }
+                    ;
+paramForm           : { $$ = insTdD(-1, T_VACIO); }
+                    | listParamForm { $$ = $1;}
+                    ;
+listParamForm       : tipoSimp ID_ {
+                        $$ = insTdD(-1, $1);
+                        int refe = -1;
+                        if(!insTdS($2, PARAMETRO, $1, niv, dvar, refe)) {
+                            yyerror("El parámetro ya existe");
+                        } else {
+                            dvar += TALLA_TIPO_SIMPLE;
+                        }
+                    }
+                    | tipoSimp ID_ COMA_ listParamForm {
+                        $$ = insTdD($4, $1);
+                        int refe = -1;
+                        if(!insTdS($2, PARAMETRO, $1, niv, dvar, refe)) {
+                            yyerror("El parámetro ya existe");
+                        } else {
+                            dvar += TALLA_TIPO_SIMPLE;
+                        }
+                    }
+                    ;
+bloque              : LLAA_ declaVarLocal listInt RETURN_ expre PYC_ LLAC_ { $$ = $5; }
+                    ;
+declaVarLocal       : 
+                    | declaVarLocal declaVar
+                    ;
+listInt             : 
+                    | listInt inst
+                    ;
+inst                : LLAA_ listInt LLAC_ 
+                    | instExpre
+                    | instEntSal
+                    | instSelec
+                    | instIter
+                    ;
+instExpre           : expre PYC_
+                    | PYC_
+                    ;
+instEntSal          : READ_ PARA_ ID_ PARC_ PYC_ {
+                        SIMB simb = obtTdS($3);
+                        if (simb.t != T_ENTERO) {
+                            yyerror("El argumento del read debe ser de tipo simple");
+                        }
+                    }
+                    | PRINT_ PARA_ expre PARC_ PYC_ {
+                        if ($3.tipo != T_ENTERO) {
+                            yyerror("La expresion del print debe ser de tipo simple");
+                        }
+                    }
+                    ;
+instSelec           : IF_ PARA_ expre PARC_  {
+                        if ($3.tipo != T_LOGICO) {
+                            yyerror("La expresion del if debe ser logica");
+                        }
+                    } inst ELSE_ inst
+                    ;
+instIter            : FOR_ PARA_ expreOP PYC_ expre PYC_ expreOP PARC_ {
+                        if ($3.tipo != T_ENTERO || $7.tipo != T_ENTERO) {
+                            yyerror("La expreOp del for debe ser de tipo simple");
+                        }
+                        if ($5.tipo != T_LOGICO) {
+                            yyerror("La expresion del for debe ser logica");
+                        }
+                    } inst 
+                    ;
+expreOP             : { $$.tipo = T_ENTERO; }
+                    | expre { $$ = $1; }
+                    ;
+expre               : expreLogic { $$ = $1; }
+                    | ID_ ASIG_ expre {
+                        SIMB simb = obtTdS($1);
+                        if (simb.t != $3.tipo) {
+                            yyerror("Los tipos en la asignación no coinciden");
+                        }
+                        $$.tipo = T_ERROR;  
+                    }
+                    | ID_ CORA_ expre CORC_ ASIG_ expre {
+                        SIMB simb = obtTdS($1);
+                        DIM dim = obtTdA(simb.ref);
+                        if (dim.telem != $6.tipo) {
+                            yyerror("El tipo del array no coincide con el de la variable");
+                        }
+
+                        $$.tipo = T_ERROR; 
+                    }
+                    ;
+expreLogic          : expreIgual { $$ = $1; }
+                    | expreLogic opLogic expreIgual {
+                        if ($1.tipo != $3.tipo) {
+                            yyerror("Los tipos de la expresión Logic no coinciden");
+                        }
+                        $$ = $2;
+                    }
+                    ;
+expreIgual          : expreRel { $$ = $1; }
+                    | expreIgual opIgual expreRel {
+                        if ($1.tipo != $3.tipo) {
+                            yyerror("Los tipos de la expresión Igual no coinciden");
+                        }
+                        $$ = $2;
+                    }
+                    ;
+expreRel            : expreAd { $$ = $1; }
+                    | expreRel opRel expreAd {
+                        if ($1.tipo != $3.tipo) {
+                            yyerror("Los tipos de la expresión Rel no coinciden");
+                        }
+                        $$ = $2;
+                    }
+                    ;
+expreAd             : expreMul { $$ = $1; }
+                    | expreAd opAd expreMul {
+                        if ($1.tipo != $2.tipo || $1.tipo != $3.tipo) {
+                            yyerror("Los tipos de la expresión Ad no coinciden");
+                        }
+                        $$ = $2;
+                    }
+                    ;
+expreMul            : expreUna { $$ = $1; }
+                    | expreMul opMul expreUna {
+                        if ($1.tipo != $2.tipo || $1.tipo != $3.tipo) {
+                            yyerror("Los tipos de la expresión Mul no coinciden");
+                        }
+                        $$ = $2;
+                    }
+                    ;
+expreUna            : expreSufi { $$ = $1; }
+                    | opUna expreUna {
+                        if ($1.tipo != $2.tipo) {
+                            yyerror("Los tipos de la expresión Una no coinciden");
+                        }
+                        $$ = $1;
+                    }
+                    ;
+expreSufi           : const { $$ = $1; }
+                    | PARA_ expre PARC_ { $$ = $2;}
+                    | ID_ { 
+                        SIMB simb = obtTdS($1);
+                        $$.tipo = simb.t;
+                    }
+                    | ID_ CORA_ expre CORC_ {
+                        SIMB simb = obtTdS($1);
+                        DIM dim = obtTdA(simb.ref);
+                        $$.tipo = dim.telem;  
+                    }
+                    | ID_ PARA_ paramAct PARC_ {
+                        SIMB simb = obtTdS($1);
+                        INF inf = obtTdD(simb.ref);
+                        $$.tipo = inf.tipo; 
+                    }
+                    ;
+paramAct            : 
+                    | listParamAct
+                    ;
+listParamAct        : expre
+                    | expre COMA_ listParamAct
+                    ;
+opLogic             : AND_ { $$.tipo = T_LOGICO; }
+                    | OR_ { $$.tipo = T_LOGICO; }
+                    ;
+opIgual             : EQUAL_ { $$.tipo = T_LOGICO; }
+                    | NEQUAL_ { $$.tipo = T_LOGICO; }
+                    ;
+opRel               : MAYOR_ { $$.tipo = T_LOGICO; }
+                    | MENOR_ { $$.tipo = T_LOGICO; }
+                    | MAIG_ { $$.tipo = T_LOGICO; }
+                    | MEIG_ { $$.tipo = T_LOGICO; }
+                    ;
+opAd                : MAS_ { $$.tipo = T_ENTERO; }
+                    | MENOS_ { $$.tipo = T_ENTERO; }
+                    ;
+opMul               : POR_ { $$.tipo = T_ENTERO; }
+                    | DIV_ { $$.tipo = T_ENTERO; }
+                    ;
+opUna               : MAS_ { $$.tipo = T_ENTERO; }
+                    | MENOS_ { $$.tipo = T_ENTERO; }
+                    | EXCL_ { $$.tipo = T_LOGICO; }
+                    ;
+
+%%
