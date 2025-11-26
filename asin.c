@@ -568,9 +568,9 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int16 yyrline[] =
 {
        0,    45,    45,    45,    52,    53,    55,    56,    58,    67,
-      79,    94,    95,    96,    98,    99,   101,   101,   116,   117,
-     119,   128,   138,   140,   141,   143,   144,   146,   147,   148,
-     149,   150,   152,   153,   155,   161,   167,   167,   173,   173,
+      79,    94,    95,    96,    98,    99,   101,   101,   115,   116,
+     118,   127,   137,   139,   140,   142,   143,   145,   146,   147,
+     148,   149,   151,   152,   154,   161,   167,   167,   173,   173,
      182,   183,   185,   186,   192,   207,   208,   215,   216,   223,
      224,   231,   232,   239,   240,   247,   248,   255,   256,   257,
      261,   274,   285,   286,   288,   289,   291,   292,   294,   295,
@@ -1351,25 +1351,24 @@ yyreduce:
                         if(!insTdS($2, FUNCION, $1, niv, 0, refe)) {
                             yyerror("La función ya existe");
                         }*/
-                        mostrarTdS();
                     }
-#line 1357 "asin.c"
+#line 1356 "asin.c"
     break;
 
   case 18: /* paramForm: %empty  */
-#line 116 "src/asin.y"
+#line 115 "src/asin.y"
                       { (yyval.ent) = insTdD(-1, T_VACIO); }
-#line 1363 "asin.c"
+#line 1362 "asin.c"
     break;
 
   case 19: /* paramForm: listParamForm  */
-#line 117 "src/asin.y"
+#line 116 "src/asin.y"
                                     { (yyval.ent) = (yyvsp[0].ent);}
-#line 1369 "asin.c"
+#line 1368 "asin.c"
     break;
 
   case 20: /* listParamForm: tipoSimp ID_  */
-#line 119 "src/asin.y"
+#line 118 "src/asin.y"
                                    {
                         (yyval.ent) = insTdD(-1, (yyvsp[-1].ent));
                         int refe = -1;
@@ -1379,11 +1378,11 @@ yyreduce:
                             dvar += TALLA_TIPO_SIMPLE;
                         }
                     }
-#line 1383 "asin.c"
+#line 1382 "asin.c"
     break;
 
   case 21: /* listParamForm: tipoSimp ID_ COMA_ listParamForm  */
-#line 128 "src/asin.y"
+#line 127 "src/asin.y"
                                                        {
                         (yyval.ent) = insTdD((yyvsp[0].ent), (yyvsp[-3].ent));
                         int refe = -1;
@@ -1393,19 +1392,20 @@ yyreduce:
                             dvar += TALLA_TIPO_SIMPLE;
                         }
                     }
-#line 1397 "asin.c"
+#line 1396 "asin.c"
     break;
 
   case 22: /* bloque: LLAA_ declaVarLocal listInt RETURN_ expre PYC_ LLAC_  */
-#line 138 "src/asin.y"
+#line 137 "src/asin.y"
                                                                            { (yyval.tCons) = (yyvsp[-2].tCons); }
-#line 1403 "asin.c"
+#line 1402 "asin.c"
     break;
 
   case 34: /* instEntSal: READ_ PARA_ ID_ PARC_ PYC_  */
-#line 155 "src/asin.y"
+#line 154 "src/asin.y"
                                                  {
                         SIMB simb = obtTdS((yyvsp[-2].ident));
+                        //mostrarTdS();
                         if (simb.t != T_ENTERO) {
                             yyerror("El argumento del read debe ser de tipo simple");
                         }

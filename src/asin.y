@@ -110,7 +110,6 @@ declaFunc           : tipoSimp ID_ { niv++; cargaContexto(niv); dvarAnt = dvar; 
                         if(!insTdS($2, FUNCION, $1, niv, 0, refe)) {
                             yyerror("La función ya existe");
                         }*/
-                        mostrarTdS();
                     }
                     ;
 paramForm           : { $$ = insTdD(-1, T_VACIO); }
