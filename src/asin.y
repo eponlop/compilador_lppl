@@ -42,9 +42,9 @@
 
 %%
 
-programa            : { niv = 0; dvar = 0; dvarAnt = 0; cargaContexto(niv); } listDecla {
-                        SIMB mainFun = obtTdS("main");
-                        if (mainFun.t != FUNCION) {
+programa            : { niv = 0; dvar = 0; cargaContexto(niv); } listDecla {
+                        SIMB simb = obtTdS("main");
+                        if (simb.t == T_ERROR) {
                             yyerror("No existe la función main");
                         }
                     }
@@ -98,18 +98,24 @@ const               : CTE_ { $$.tipo = T_ENTERO; $$.valor = $1; }
 tipoSimp            : INT_ { $$ = T_ENTERO; }
                     | BOOL_ { $$ = T_LOGICO; }
                     ;
-declaFunc           : tipoSimp ID_ { niv++; cargaContexto(niv); dvarAnt = dvar; dvar = 0; } PARA_ paramForm PARC_ bloque
+declaFunc           : tipoSimp ID_ { 
+                        $<ent>$ = dvar;
+                        niv++; 
+                        cargaContexto(niv); 
+                        dvar = 0; 
+                    } PARA_ paramForm PARC_ {
+                        int refe = $5;
+                        if(!insTdS($2, FUNCION, $1, niv - 1, 0, refe)) {
+                            yyerror("La función ya existe");
+                        }
+                    } bloque
                     {
-                        if ($7.tipo != $1) {
+                        if ($8.tipo != $1) {
                             yyerror("El tipo de retorno no coincide con el de la función");
                         }
                         descargaContexto(niv);
                         niv--;
-                        dvar = dvarAnt;
-                        /*int refe = $5;
-                        if(!insTdS($2, FUNCION, $1, niv, 0, refe)) {
-                            yyerror("La función ya existe");
-                        }*/
+                        dvar = $<ent>3;
                     }
                     ;
 paramForm           : { $$ = insTdD(-1, T_VACIO); }
@@ -223,6 +229,10 @@ expreRel            : expreAd { $$ = $1; }
                     | expreRel opRel expreAd {
                         if ($1.tipo != $3.tipo) {
                             yyerror("Los tipos de la expresión Rel no coinciden");
+                        } else {
+                            if ($1.tipo != T_ENTERO || $3.tipo != T_ENTERO) {
+                                yyerror("Los tipos de la expresión Rel deben ser enteros");
+                            }
                         }
                         $$ = $2;
                     }
@@ -237,7 +247,7 @@ expreAd             : expreMul { $$ = $1; }
                     ;
 expreMul            : expreUna { $$ = $1; }
                     | expreMul opMul expreUna {
-                        if ($1.tipo != $2.tipo || $1.tipo != $3.tipo) {
+                        if ($1.tipo != $2.tipo || $3.tipo != $2.tipo) {
                             yyerror("Los tipos de la expresión Mul no coinciden");
                         }
                         $$ = $2;
