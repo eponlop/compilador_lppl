@@ -1,7 +1,7 @@
 // Ejemplo de manipulacion de funciones: 10 errores
 //-------------------------------------------------
 
-bool X[20];
+bool J[20];
 bool main (int A, bool A)  // Identificador de parametro repetido
 {
   bool A;                  // Identificador de variable repetido
