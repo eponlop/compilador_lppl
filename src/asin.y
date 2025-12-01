@@ -189,76 +189,115 @@ expreOP             : { $$.tipo = T_ENTERO; }
                     ;
 expre               : expreLogic { $$ = $1; }
                     | ID_ ASIG_ expre {
+                        int tipo = T_ERROR;
                         SIMB simb = obtTdS($1);
                         if (simb.t != $3.tipo) {
                             yyerror("Los tipos en la asignación no coinciden");
+                        } else {
+                            tipo = T_ENTERO;
                         }
+                        $$.tipo = tipo;
                     }
                     | ID_ CORA_ expre CORC_ ASIG_ expre {
+                        int tipo = T_ERROR;
                         if ($3.tipo != T_ENTERO) {
                             yyerror("El indice del array debe ser entero");
-                        }
-                        SIMB simb = obtTdS($1);
-                        if (simb.t != T_ARRAY) {
-                            yyerror("La variable debe ser de tipo array");
                         } else {
-                            DIM dim = obtTdA(simb.ref);
-                            if (dim.telem != $6.tipo) {
-                                yyerror("El tipo del array no coincide con el de la variable");
+                            SIMB simb = obtTdS($1);
+                            if (simb.t == T_ERROR) {
+                                yyerror("La variable debe ser de tipo array");
+                            } else {
+                                DIM dim = obtTdA(simb.ref);
+                                if (dim.telem != $6.tipo) {
+                                    yyerror("El tipo del array no coincide con el de la variable");
+                                } else {
+                                    tipo = T_ENTERO;
+                                }
                             }
                         }
+                        $$.tipo = tipo; 
                     }
                     ;
 expreLogic          : expreIgual { $$ = $1; }
                     | expreLogic opLogic expreIgual {
+                        int tipo = T_ERROR;
                         if ($1.tipo != $3.tipo) {
                             yyerror("Los tipos de la expresión Logic no coinciden");
+                        } else {
+                            if ($1.tipo != T_LOGICO || $3.tipo != T_LOGICO) {
+                                yyerror("Los tipos de la expresión Rel deben ser enteros");
+                            } else {
+                                tipo = $2.tipo;
+                            }
                         }
-                        $$ = $2;
+                        $$.tipo = tipo;
                     }
                     ;
 expreIgual          : expreRel { $$ = $1; }
                     | expreIgual opIgual expreRel {
+                        int tipo = T_ERROR;
                         if ($1.tipo != $3.tipo) {
                             yyerror("Los tipos de la expresión Igual no coinciden");
+                        } else {
+                            tipo = $2.tipo;
                         }
-                        $$ = $2;
+                        $$.tipo = tipo;
                     }
                     ;
 expreRel            : expreAd { $$ = $1; }
                     | expreRel opRel expreAd {
+                        int tipo = T_ERROR;
                         if ($1.tipo != $3.tipo) {
                             yyerror("Los tipos de la expresión Rel no coinciden");
                         } else {
                             if ($1.tipo != T_ENTERO || $3.tipo != T_ENTERO) {
                                 yyerror("Los tipos de la expresión Rel deben ser enteros");
+                            } else {
+                                tipo = $2.tipo;
                             }
                         }
-                        $$ = $2;
+                        $$.tipo = tipo;
                     }
                     ;
 expreAd             : expreMul { $$ = $1; }
                     | expreAd opAd expreMul {
-                        if ($1.tipo != $2.tipo || $1.tipo != $3.tipo) {
+                        int tipo = T_ERROR;
+                        if ($1.tipo != $3.tipo) {
                             yyerror("Los tipos de la expresión Ad no coinciden");
+                        } else {
+                            if ($1.tipo != T_ENTERO || $3.tipo != T_ENTERO) {
+                                yyerror("Los tipos de la expresión Ad deben ser enteros");
+                            } else {
+                                tipo = $2.tipo;
+                            }
                         }
-                        $$ = $2;
+                        $$.tipo = tipo;
                     }
                     ;
 expreMul            : expreUna { $$ = $1; }
                     | expreMul opMul expreUna {
-                        if ($1.tipo != $2.tipo || $3.tipo != $2.tipo) {
+                        int tipo = T_ERROR;
+                        if ($1.tipo != $3.tipo) {
                             yyerror("Los tipos de la expresión Mul no coinciden");
+                        } else {
+                            if ($1.tipo != T_ENTERO || $3.tipo != T_ENTERO) {
+                                yyerror("Los tipos de la expresión Mul deben ser enteros");
+                            } else {
+                                tipo = $2.tipo;
+                            }
                         }
-                        $$ = $2;
+                        $$.tipo = tipo;
                     }
                     ;
 expreUna            : expreSufi { $$ = $1; }
                     | opUna expreUna {
+                        int tipo = T_ERROR;
                         if ($1.tipo != $2.tipo) {
                             yyerror("Los tipos de la expresión Una no coinciden");
+                        } else {
+                            tipo = $1.tipo;
                         }
-                        $$ = $1;
+                        $$.tipo = tipo;
                     }
                     ;
 expreSufi           : const { $$ = $1; }
@@ -268,27 +307,31 @@ expreSufi           : const { $$ = $1; }
                         $$.tipo = simb.t;
                     }
                     | ID_ CORA_ expre CORC_ {
+                        int tipo = T_ERROR;
                         if ($3.tipo != T_ENTERO) {
-                            yyerror("No se puede indexar un array con un booleano");
-                        }
-                        SIMB simb = obtTdS($1);
-                        if (simb.t != T_ARRAY) {
-                            yyerror("La variable debe ser de tipo array");
-                            $$.tipo = T_ERROR;
+                            yyerror("El índice del array debe ser un entero");
                         } else {
-                            DIM dim = obtTdA(simb.ref);
-                            $$.tipo = dim.telem;  
+                            SIMB simb = obtTdS($1);
+                            if (simb.t != T_ARRAY) {
+                                yyerror("La variable debe ser de tipo array");
+                            } else {
+                                DIM dim = obtTdA(simb.ref);
+                                tipo = dim.telem;
+                            }
                         }
+                        $$.tipo = tipo;
                     }
                     | ID_ PARA_ paramAct PARC_ {
+                        int tipo = T_ERROR;
                         SIMB simb = obtTdS($1);
                         if (simb.t == T_ERROR) {
                             yyerror("La función no está declarada");
-                            $$.tipo = T_ERROR;
+                            tipo = T_ERROR;
                         } else {
                             INF inf = obtTdD(simb.ref);
-                            $$.tipo = inf.tipo; 
+                            tipo = inf.tipo;
                         }
+                        $$.tipo = tipo;
                     }
                     ;
 paramAct            : 
