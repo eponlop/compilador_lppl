@@ -111,7 +111,7 @@ declaFunc           : tipoSimp ID_ {
                     } bloque
                     {
                         if ($8.tipo != $1) {
-                            yyerror("El tipo de retorno no coincide con el de la función");
+                            printf("\nError en %d: El tipo de retorno no coincide con el de la función\n", numLinea);
                         }
                         descargaContexto(niv);
                         niv--;
@@ -140,7 +140,7 @@ listParamForm       : tipoSimp ID_ {
                         }
                     }
                     ;
-bloque              : LLAA_ declaVarLocal listInt RETURN_ expre PYC_ LLAC_ { $$ = $5; }
+bloque              : LLAA_ declaVarLocal listInt RETURN_ { numLinea = yylineno; } expre PYC_ LLAC_ { $$ = $6; }
                     ;
 declaVarLocal       : 
                     | declaVarLocal declaVar
