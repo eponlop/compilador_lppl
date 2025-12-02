@@ -44,6 +44,7 @@ int dvar;                     /* Desplazamiento en el Segmento de Variables  */
 int niv;                      /* Nivel de anidamiento "global" o "local"     */
 
 int numLinea;
+int numMain;
 
 /************************************* Operaciones para la gestion de la TDS */
 void cargaContexto (int n) ;

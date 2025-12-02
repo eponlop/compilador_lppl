@@ -44,11 +44,14 @@
 
 %%
 
-programa            : { niv = 0; dvar = 0; cargaContexto(niv); } listDecla {
+programa            : { niv = 0; dvar = 0; numMain = 0; cargaContexto(niv); } listDecla {
                         //mostrarTdS();
                         SIMB simb = obtTdS("main");
                         if (simb.t == T_ERROR) {
                             yyerror("No existe la función main");
+                        }
+                        if (numMain > 1) {
+                            yyerror("El programa tiene mas de un main");
                         }
                     }
                     ;
@@ -105,7 +108,12 @@ declaFunc           : tipoSimp ID_ {
                         $<ent>$ = dvar;
                         niv++; 
                         cargaContexto(niv); 
-                        dvar = 0; 
+                        dvar = 0;
+                        if ($2[0] == 'm' && $2[1] == 'a' &&
+                            $2[2] == 'i' && $2[3] == 'n' &&
+                            $2[4] == '\0') {
+                            numMain++;
+                        }
                     } PARA_ paramForm PARC_ {
                         int refe = $5;
                         if(!insTdS($2, FUNCION, $1, niv - 1, 0, refe)) {
