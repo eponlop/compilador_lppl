@@ -32,6 +32,8 @@
 %type <tCons> opAd
 %type <tCons> opMul
 %type <tCons> opUna
+%type <ent> paramAct
+%type <ent> listParamAct
 
 %union {
     char *ident;
@@ -43,6 +45,7 @@
 %%
 
 programa            : { niv = 0; dvar = 0; cargaContexto(niv); } listDecla {
+                        //mostrarTdS();
                         SIMB simb = obtTdS("main");
                         if (simb.t == T_ERROR) {
                             yyerror("No existe la función main");
@@ -286,6 +289,7 @@ expreSufi           : const { $$ = $1; }
                     | ID_ { 
                         SIMB simb = obtTdS($1);
                         $$.tipo = simb.t;
+                        $$.nom = $1;
                     }
                     | ID_ CORA_ expre CORC_ {
                         int tipo = T_ENTERO;
@@ -312,17 +316,27 @@ expreSufi           : const { $$ = $1; }
                             if (inf.tipo == T_ERROR) {
                                 yyerror("El objeto no es una función");
                             } else {
-                                tipo = inf.tipo;
+                                if(!cmpDom(simb.ref, $3)) {
+                                    yyerror("El tipo de los parámetros no coincide");
+                                } else {
+                                    tipo = inf.tipo;
+                                }
                             }
                         }
                         $$.tipo = tipo;
                     }
                     ;
-paramAct            : 
-                    | listParamAct
+paramAct            : { $$ = insTdD(-1, T_VACIO); }
+                    | listParamAct { $$ = $1; }
                     ;
-listParamAct        : expre
-                    | expre COMA_ listParamAct
+listParamAct        : expre {
+                        SIMB simb = obtTdS($1.nom);
+                        $$ = insTdD(-1, simb.t); 
+                    }
+                    | expre COMA_ listParamAct {
+                        SIMB simb = obtTdS($1.nom);
+                        $$ = insTdD($3, simb.t); 
+                    }
                     ;
 opLogic             : AND_ { $$.tipo = T_LOGICO; }
                     | OR_ { $$.tipo = T_LOGICO; }

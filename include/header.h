@@ -30,6 +30,7 @@ extern int verTdS;
 typedef struct tCons {
     int tipo; // 1 para entero 2 para bool
     int valor; // si bool, 1 para true 0 para false
+    char *nom;
 } TCONS;
 
 #endif  /* _HEADER_H */
