@@ -575,9 +575,9 @@ static const yytype_int16 yyrline[] =
      156,   157,   158,   159,   161,   162,   164,   170,   176,   176,
      182,   182,   191,   192,   194,   195,   206,   223,   224,   235,
      236,   243,   244,   255,   256,   267,   268,   279,   280,   287,
-     288,   289,   294,   309,   329,   330,   332,   336,   341,   342,
-     344,   345,   347,   348,   349,   350,   352,   353,   355,   356,
-     358,   359,   360
+     288,   289,   293,   308,   328,   329,   331,   334,   338,   339,
+     341,   342,   344,   345,   346,   347,   349,   350,   352,   353,
+     355,   356,   357
 };
 #endif
 
@@ -1655,13 +1655,12 @@ yyreduce:
                           { 
                         SIMB simb = obtTdS((yyvsp[0].ident));
                         (yyval.tCons).tipo = simb.t;
-                        (yyval.tCons).nom = (yyvsp[0].ident);
                     }
-#line 1661 "asin.c"
+#line 1660 "asin.c"
     break;
 
   case 62: /* expreSufi: ID_ CORA_ expre CORC_  */
-#line 294 "src/asin.y"
+#line 293 "src/asin.y"
                                             {
                         int tipo = T_ENTERO;
                         if ((yyvsp[-1].tCons).tipo != T_ENTERO) {
@@ -1677,11 +1676,11 @@ yyreduce:
                         }
                         (yyval.tCons).tipo = tipo;
                     }
-#line 1681 "asin.c"
+#line 1680 "asin.c"
     break;
 
   case 63: /* expreSufi: ID_ PARA_ paramAct PARC_  */
-#line 309 "src/asin.y"
+#line 308 "src/asin.y"
                                                {
                         int tipo = T_ENTERO;
                         SIMB simb = obtTdS((yyvsp[-3].ident));
@@ -1701,131 +1700,129 @@ yyreduce:
                         }
                         (yyval.tCons).tipo = tipo;
                     }
-#line 1705 "asin.c"
+#line 1704 "asin.c"
     break;
 
   case 64: /* paramAct: %empty  */
-#line 329 "src/asin.y"
+#line 328 "src/asin.y"
                       { (yyval.ent) = insTdD(-1, T_VACIO); }
-#line 1711 "asin.c"
+#line 1710 "asin.c"
     break;
 
   case 65: /* paramAct: listParamAct  */
-#line 330 "src/asin.y"
+#line 329 "src/asin.y"
                                    { (yyval.ent) = (yyvsp[0].ent); }
-#line 1717 "asin.c"
+#line 1716 "asin.c"
     break;
 
   case 66: /* listParamAct: expre  */
-#line 332 "src/asin.y"
+#line 331 "src/asin.y"
                             {
-                        SIMB simb = obtTdS((yyvsp[0].tCons).nom);
-                        (yyval.ent) = insTdD(-1, simb.t); 
+                        (yyval.ent) = insTdD(-1, (yyvsp[0].tCons).tipo);
                     }
-#line 1726 "asin.c"
+#line 1724 "asin.c"
     break;
 
   case 67: /* listParamAct: expre COMA_ listParamAct  */
-#line 336 "src/asin.y"
+#line 334 "src/asin.y"
                                                {
-                        SIMB simb = obtTdS((yyvsp[-2].tCons).nom);
-                        (yyval.ent) = insTdD((yyvsp[0].ent), simb.t); 
+                        (yyval.ent) = insTdD((yyvsp[0].ent), (yyvsp[-2].tCons).tipo); 
                     }
-#line 1735 "asin.c"
+#line 1732 "asin.c"
     break;
 
   case 68: /* opLogic: AND_  */
-#line 341 "src/asin.y"
+#line 338 "src/asin.y"
                            { (yyval.tCons).tipo = T_LOGICO; }
-#line 1741 "asin.c"
+#line 1738 "asin.c"
     break;
 
   case 69: /* opLogic: OR_  */
-#line 342 "src/asin.y"
+#line 339 "src/asin.y"
                           { (yyval.tCons).tipo = T_LOGICO; }
-#line 1747 "asin.c"
+#line 1744 "asin.c"
     break;
 
   case 70: /* opIgual: EQUAL_  */
-#line 344 "src/asin.y"
+#line 341 "src/asin.y"
                              { (yyval.tCons).tipo = T_LOGICO; }
-#line 1753 "asin.c"
+#line 1750 "asin.c"
     break;
 
   case 71: /* opIgual: NEQUAL_  */
-#line 345 "src/asin.y"
+#line 342 "src/asin.y"
                               { (yyval.tCons).tipo = T_LOGICO; }
-#line 1759 "asin.c"
+#line 1756 "asin.c"
     break;
 
   case 72: /* opRel: MAYOR_  */
-#line 347 "src/asin.y"
+#line 344 "src/asin.y"
                              { (yyval.tCons).tipo = T_LOGICO; }
-#line 1765 "asin.c"
+#line 1762 "asin.c"
     break;
 
   case 73: /* opRel: MENOR_  */
-#line 348 "src/asin.y"
+#line 345 "src/asin.y"
                              { (yyval.tCons).tipo = T_LOGICO; }
-#line 1771 "asin.c"
+#line 1768 "asin.c"
     break;
 
   case 74: /* opRel: MAIG_  */
-#line 349 "src/asin.y"
+#line 346 "src/asin.y"
                             { (yyval.tCons).tipo = T_LOGICO; }
-#line 1777 "asin.c"
+#line 1774 "asin.c"
     break;
 
   case 75: /* opRel: MEIG_  */
-#line 350 "src/asin.y"
+#line 347 "src/asin.y"
                             { (yyval.tCons).tipo = T_LOGICO; }
-#line 1783 "asin.c"
+#line 1780 "asin.c"
     break;
 
   case 76: /* opAd: MAS_  */
-#line 352 "src/asin.y"
+#line 349 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1789 "asin.c"
+#line 1786 "asin.c"
     break;
 
   case 77: /* opAd: MENOS_  */
-#line 353 "src/asin.y"
+#line 350 "src/asin.y"
                              { (yyval.tCons).tipo = T_ENTERO; }
-#line 1795 "asin.c"
+#line 1792 "asin.c"
     break;
 
   case 78: /* opMul: POR_  */
-#line 355 "src/asin.y"
+#line 352 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1801 "asin.c"
+#line 1798 "asin.c"
     break;
 
   case 79: /* opMul: DIV_  */
-#line 356 "src/asin.y"
+#line 353 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1807 "asin.c"
+#line 1804 "asin.c"
     break;
 
   case 80: /* opUna: MAS_  */
-#line 358 "src/asin.y"
+#line 355 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; }
-#line 1813 "asin.c"
+#line 1810 "asin.c"
     break;
 
   case 81: /* opUna: MENOS_  */
-#line 359 "src/asin.y"
+#line 356 "src/asin.y"
                              { (yyval.tCons).tipo = T_ENTERO; }
-#line 1819 "asin.c"
+#line 1816 "asin.c"
     break;
 
   case 82: /* opUna: EXCL_  */
-#line 360 "src/asin.y"
+#line 357 "src/asin.y"
                             { (yyval.tCons).tipo = T_LOGICO; }
-#line 1825 "asin.c"
+#line 1822 "asin.c"
     break;
 
 
-#line 1829 "asin.c"
+#line 1826 "asin.c"
 
       default: break;
     }
@@ -2018,5 +2015,5 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 363 "src/asin.y"
+#line 360 "src/asin.y"
 

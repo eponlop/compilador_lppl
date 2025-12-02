@@ -289,7 +289,6 @@ expreSufi           : const { $$ = $1; }
                     | ID_ { 
                         SIMB simb = obtTdS($1);
                         $$.tipo = simb.t;
-                        $$.nom = $1;
                     }
                     | ID_ CORA_ expre CORC_ {
                         int tipo = T_ENTERO;
@@ -330,12 +329,10 @@ paramAct            : { $$ = insTdD(-1, T_VACIO); }
                     | listParamAct { $$ = $1; }
                     ;
 listParamAct        : expre {
-                        SIMB simb = obtTdS($1.nom);
-                        $$ = insTdD(-1, simb.t); 
+                        $$ = insTdD(-1, $1.tipo);
                     }
                     | expre COMA_ listParamAct {
-                        SIMB simb = obtTdS($1.nom);
-                        $$ = insTdD($3, simb.t); 
+                        $$ = insTdD($3, $1.tipo); 
                     }
                     ;
 opLogic             : AND_ { $$.tipo = T_LOGICO; }
