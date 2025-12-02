@@ -288,6 +288,7 @@ expreSufi           : const { $$ = $1; }
                         $$.tipo = simb.t;
                     }
                     | ID_ CORA_ expre CORC_ {
+                        int tipo = T_ENTERO;
                         if ($3.tipo != T_ENTERO) {
                             yyerror("El índice del array debe ser un entero");
                         } else {
@@ -296,24 +297,25 @@ expreSufi           : const { $$ = $1; }
                                 yyerror("La variable debe ser de tipo array");
                             } else {
                                 DIM dim = obtTdA(simb.ref);
-                                $$.tipo = dim.telem;
+                                tipo = dim.telem;
                             }
                         }
+                        $$.tipo = tipo;
                     }
                     | ID_ PARA_ paramAct PARC_ {
+                        int tipo = T_ENTERO;
                         SIMB simb = obtTdS($1);
-                        if (simb.t == T_ERROR) {
+                        if (simb.t != T_ENTERO && simb.t != T_LOGICO) {
                             yyerror("La función no está declarada");
                         } else {
                             INF inf = obtTdD(simb.ref);
-                            //printf("%s\n", inf.nom);
                             if (inf.tipo == T_ERROR) {
                                 yyerror("El objeto no es una función");
                             } else {
-                                $$.tipo = inf.tipo;
+                                tipo = inf.tipo;
                             }
                         }
-                        
+                        $$.tipo = tipo;
                     }
                     ;
 paramAct            : 
