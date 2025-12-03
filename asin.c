@@ -569,8 +569,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    47,    47,    47,    58,    59,    61,    62,    64,    73,
-      85,   100,   101,   102,   104,   105,   107,   117,   107,   139,
+       0,    47,    47,    47,    57,    58,    60,    61,    63,    72,
+      84,    99,   100,   101,   103,   104,   106,   116,   106,   139,
      140,   142,   151,   161,   161,   163,   164,   166,   167,   169,
      170,   171,   172,   173,   175,   176,   178,   184,   190,   190,
      196,   196,   205,   206,   208,   209,   220,   237,   238,   249,
@@ -1248,7 +1248,6 @@ yyreduce:
   case 3: /* programa: $@1 listDecla  */
 #line 47 "src/asin.y"
                                                                                         {
-                        //mostrarTdS();
                         SIMB simb = obtTdS("main");
                         if (simb.t == T_ERROR) {
                             yyerror("No existe la función main");
@@ -1257,11 +1256,11 @@ yyreduce:
                             yyerror("El programa tiene mas de un main");
                         }
                     }
-#line 1261 "asin.c"
+#line 1260 "asin.c"
     break;
 
   case 8: /* declaVar: tipoSimp ID_ PYC_  */
-#line 65 "src/asin.y"
+#line 64 "src/asin.y"
                     {
                         int refe = -1;
                         if(!insTdS((yyvsp[-1].ident), VARIABLE, (yyvsp[-2].ent), niv, dvar, refe)) {
@@ -1270,11 +1269,11 @@ yyreduce:
                             dvar += TALLA_TIPO_SIMPLE;
                         }
                     }
-#line 1274 "asin.c"
+#line 1273 "asin.c"
     break;
 
   case 9: /* declaVar: tipoSimp ID_ ASIG_ const PYC_  */
-#line 74 "src/asin.y"
+#line 73 "src/asin.y"
                     {
                         if ((yyvsp[-4].ent) != (yyvsp[-1].tCons).tipo) {
                             yyerror("Los tipos no coinciden");
@@ -1286,11 +1285,11 @@ yyreduce:
                             dvar += TALLA_TIPO_SIMPLE;
                         }
                     }
-#line 1290 "asin.c"
+#line 1289 "asin.c"
     break;
 
   case 10: /* declaVar: tipoSimp ID_ CORA_ CTE_ CORC_ PYC_  */
-#line 86 "src/asin.y"
+#line 85 "src/asin.y"
                     {
                         if((yyvsp[-2].ent) <= 0) {
                             yyerror("La dimension del vector debe ser mayor que 0");
@@ -1303,57 +1302,57 @@ yyreduce:
                             dvar += (yyvsp[-2].ent) * TALLA_TIPO_SIMPLE;
                         }
                     }
-#line 1307 "asin.c"
+#line 1306 "asin.c"
     break;
 
   case 11: /* const: CTE_  */
-#line 100 "src/asin.y"
+#line 99 "src/asin.y"
                            { (yyval.tCons).tipo = T_ENTERO; (yyval.tCons).valor = (yyvsp[0].ent); }
-#line 1313 "asin.c"
+#line 1312 "asin.c"
     break;
 
   case 12: /* const: TRUE_  */
-#line 101 "src/asin.y"
+#line 100 "src/asin.y"
                             { (yyval.tCons).tipo = T_LOGICO; (yyval.tCons).valor = 1; }
-#line 1319 "asin.c"
+#line 1318 "asin.c"
     break;
 
   case 13: /* const: FALSE_  */
-#line 102 "src/asin.y"
+#line 101 "src/asin.y"
                              { (yyval.tCons).tipo = T_LOGICO; (yyval.tCons).valor = 0; }
-#line 1325 "asin.c"
+#line 1324 "asin.c"
     break;
 
   case 14: /* tipoSimp: INT_  */
-#line 104 "src/asin.y"
+#line 103 "src/asin.y"
                            { (yyval.ent) = T_ENTERO; }
-#line 1331 "asin.c"
+#line 1330 "asin.c"
     break;
 
   case 15: /* tipoSimp: BOOL_  */
-#line 105 "src/asin.y"
+#line 104 "src/asin.y"
                             { (yyval.ent) = T_LOGICO; }
-#line 1337 "asin.c"
+#line 1336 "asin.c"
     break;
 
   case 16: /* @2: %empty  */
-#line 107 "src/asin.y"
+#line 106 "src/asin.y"
                                    { 
                         (yyval.ent) = dvar;
                         niv++; 
                         cargaContexto(niv); 
-                        dvar = 0;
+                        dvar = -TALLA_SEG_ENLACES;
                         if ((yyvsp[0].ident)[0] == 'm' && (yyvsp[0].ident)[1] == 'a' &&
                             (yyvsp[0].ident)[2] == 'i' && (yyvsp[0].ident)[3] == 'n' &&
                             (yyvsp[0].ident)[4] == '\0') {
                             numMain++;
                         }
                     }
-#line 1353 "asin.c"
+#line 1352 "asin.c"
     break;
 
   case 17: /* @3: %empty  */
-#line 117 "src/asin.y"
+#line 116 "src/asin.y"
                                             {
                         (yyval.ent) = 1;
                         int refe = (yyvsp[-1].ent);
@@ -1361,6 +1360,7 @@ yyreduce:
                             yyerror("La función ya existe");
                             (yyval.ent) = 0;
                         }
+                        dvar = 0;
                     }
 #line 1366 "asin.c"
     break;
@@ -1403,7 +1403,7 @@ yyreduce:
                         if(!insTdS((yyvsp[0].ident), PARAMETRO, (yyvsp[-1].ent), niv, dvar, refe)) {
                             yyerror("El parámetro ya existe");
                         } else {
-                            dvar += TALLA_TIPO_SIMPLE;
+                            dvar -= TALLA_TIPO_SIMPLE;
                         }
                     }
 #line 1410 "asin.c"
@@ -1417,7 +1417,7 @@ yyreduce:
                         if(!insTdS((yyvsp[-2].ident), PARAMETRO, (yyvsp[-3].ent), niv, dvar, refe)) {
                             yyerror("El parámetro ya existe");
                         } else {
-                            dvar += TALLA_TIPO_SIMPLE;
+                            dvar -= TALLA_TIPO_SIMPLE;
                         }
                     }
 #line 1424 "asin.c"

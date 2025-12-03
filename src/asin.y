@@ -45,7 +45,6 @@
 %%
 
 programa            : { niv = 0; dvar = 0; numMain = 0; cargaContexto(niv); } listDecla {
-                        //mostrarTdS();
                         SIMB simb = obtTdS("main");
                         if (simb.t == T_ERROR) {
                             yyerror("No existe la función main");
@@ -108,7 +107,7 @@ declaFunc           : tipoSimp ID_ {
                         $<ent>$ = dvar;
                         niv++; 
                         cargaContexto(niv); 
-                        dvar = 0;
+                        dvar = -TALLA_SEG_ENLACES;
                         if ($2[0] == 'm' && $2[1] == 'a' &&
                             $2[2] == 'i' && $2[3] == 'n' &&
                             $2[4] == '\0') {
@@ -121,6 +120,7 @@ declaFunc           : tipoSimp ID_ {
                             yyerror("La función ya existe");
                             $<ent>$ = 0;
                         }
+                        dvar = 0;
                     } bloque
                     {
                         if ($8.tipo != $1) {
@@ -145,7 +145,7 @@ listParamForm       : tipoSimp ID_ {
                         if(!insTdS($2, PARAMETRO, $1, niv, dvar, refe)) {
                             yyerror("El parámetro ya existe");
                         } else {
-                            dvar += TALLA_TIPO_SIMPLE;
+                            dvar -= TALLA_TIPO_SIMPLE;
                         }
                     }
                     | tipoSimp ID_ COMA_ listParamForm {
@@ -154,7 +154,7 @@ listParamForm       : tipoSimp ID_ {
                         if(!insTdS($2, PARAMETRO, $1, niv, dvar, refe)) {
                             yyerror("El parámetro ya existe");
                         } else {
-                            dvar += TALLA_TIPO_SIMPLE;
+                            dvar -= TALLA_TIPO_SIMPLE;
                         }
                     }
                     ;
