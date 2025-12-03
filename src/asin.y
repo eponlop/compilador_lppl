@@ -115,14 +115,20 @@ declaFunc           : tipoSimp ID_ {
                             numMain++;
                         }
                     } PARA_ paramForm PARC_ {
+                        $<ent>$ = 1;
                         int refe = $5;
-                        if(!insTdS($2, FUNCION, $1, niv - 1, 0, refe)) {
+                        if(!insTdS($2, FUNCION, $1, niv - 1, yylineno, refe)) {
                             yyerror("La función ya existe");
+                            $<ent>$ = 0;
                         }
                     } bloque
                     {
                         if ($8.tipo != $1) {
                             printf("\nError en %d: El tipo de retorno no coincide con el de la función\n", numLinea);
+                            numErrores++;
+                        }
+                        if (!$<ent>7) {
+                            printf("\nError en %d: Error en la declaración de la función\n", numLinea);
                             numErrores++;
                         }
                         descargaContexto(niv);
