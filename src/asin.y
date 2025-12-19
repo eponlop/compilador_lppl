@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "header.h"
 #include "libtds.h"
+#include "libgci.h"
 
 %}
 
