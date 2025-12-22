@@ -28,9 +28,15 @@ extern int numErrores;              /* Contador del numero de errores        */
 extern int verTdS;
 
 typedef struct tCons {
-    int tipo; // 1 para entero 2 para bool
-    int valor; // si bool, 1 para true 0 para false
+    int tipo;   // 1 para entero 2 para bool
+    int valor;  // si bool, 1 para true 0 para false
+    int d;      // desplazamiento en el segmento de variables
+    int cod;    // codigo de operacion
 } TCONS;
+
+#define EAND       29
+#define EOR        30
+#define ENOT        30
 
 #endif  /* _HEADER_H */
 /*****************************************************************************/

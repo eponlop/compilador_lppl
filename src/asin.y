@@ -35,6 +35,7 @@
 %type <tCons> opUna
 %type <ent> paramAct
 %type <ent> listParamAct
+%type <tCons> instEntSal
 
 %union {
     char *ident;
@@ -79,6 +80,8 @@ declaVar            : tipoSimp ID_ PYC_
                         if(!insTdS($2, VARIABLE, $1, niv, dvar, refe)) {
                             yyerror("La variable ya existe");
                         } else {
+                            SIMB simb = obtTdS($2);
+                            emite(EASIG, crArgPos(niv, $4.d), crArgNul(), crArgPos(simb.n, simb.d));
                             dvar += TALLA_TIPO_SIMPLE;
                         }
                     }
@@ -97,9 +100,9 @@ declaVar            : tipoSimp ID_ PYC_
                     }
                     
                     ;
-const               : CTE_ { $$.tipo = T_ENTERO; $$.valor = $1; }
-                    | TRUE_ { $$.tipo = T_LOGICO; $$.valor = 1; }
-                    | FALSE_ { $$.tipo = T_LOGICO; $$.valor = 0; }
+const               : CTE_ { $$.tipo = T_ENTERO; $$.valor = $1; $$.d = creaVarTemp(); emite(EASIG, crArgEnt($1), crArgNul(), crArgPos(niv, $$.d)); }
+                    | TRUE_ { $$.tipo = T_LOGICO; $$.valor = 1; $$.d = creaVarTemp(); emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d)); }
+                    | FALSE_ { $$.tipo = T_LOGICO; $$.valor = 0; $$.d = creaVarTemp(); emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d)); }
                     ;
 tipoSimp            : INT_ { $$ = T_ENTERO; }
                     | BOOL_ { $$ = T_LOGICO; }
@@ -181,27 +184,58 @@ instEntSal          : READ_ PARA_ ID_ PARC_ PYC_ {
                         if (simb.t != T_ENTERO) {
                             yyerror("El argumento del read debe ser de tipo simple");
                         }
+
+                        emite(EREAD, crArgNul(), crArgNul(), crArgPos(simb.n, simb.d));
                     }
                     | PRINT_ PARA_ expre PARC_ PYC_ {
                         if ($3.tipo != T_ENTERO) {
                             yyerror("La expresion del print debe ser de tipo simple");
                         }
+
+                        emite(EWRITE, crArgNul(), crArgNul(), crArgPos(niv, $3.d));
                     }
                     ;
-instSelec           : IF_ PARA_ expre PARC_  {
+instSelec           : IF_ PARA_ expre PARC_ {
                         if ($3.tipo != T_LOGICO) {
                             yyerror("La expresion del if debe ser logica");
                         }
-                    } inst ELSE_ inst
+
+                        $<ent>$ = creaLans(si); 
+                        emite(EIGUAL, crArgPos(niv, $3.d), crArgEnt(0), crArgNul());
+                    } inst {
+                        $<ent>$ = creaLans(si);
+                        emite(GOTOS, crArgNul(), crArgNul(), crArgNul());
+                        completaLans($<ent>5, crArgEtq(si));
+                    } ELSE_ inst {
+                        completaLans($<ent>7, crArgEtq(si));
+                    }
                     ;
-instIter            : FOR_ PARA_ expreOP PYC_ expre PYC_ expreOP PARC_ {
-                        if ($3.tipo != T_ENTERO || $7.tipo != T_ENTERO) {
+instIter            : FOR_ PARA_ expreOP PYC_ {
+                        $<ent>$ = si;
+                    } expre PYC_ {
+                        $<ent>$ = creaLans(si);
+                        emite(EIGUAL, crArgPos(niv, $6.d), crArgEnt(0), crArgNul());
+                    }
+                    {  
+                        $<ent>$ = creaLans(si);
+                        emite(GOTOS, crArgNul(), crArgNul(), crArgNul());
+                    }
+                    {    
+                        $<ent>$ = si;
+                    } expreOP PARC_ {
+                        if ($3.tipo != T_ENTERO || $11.tipo != T_ENTERO) {
                             yyerror("La expreOp del for debe ser de tipo simple");
                         }
-                        if ($5.tipo != T_LOGICO) {
+                        if ($6.tipo != T_LOGICO) {
                             yyerror("La expresion del for debe ser logica");
                         }
-                    } inst 
+
+                        emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<ent>5));
+                        completaLans($<ent>9, crArgEtq(si));
+                    } inst {
+                        emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<ent>10));
+                        completaLans($<ent>8, crArgEtq(si));
+                    }
                     ;
 expreOP             : { $$.tipo = T_ENTERO; }
                     | expre { $$ = $1; }
@@ -217,6 +251,10 @@ expre               : expreLogic { $$ = $1; }
                             }
                         }
                         $$.tipo = T_ENTERO;
+
+                        emite(EASIG, crArgPos(niv, $3.d), crArgNul(), crArgPos(simb.n, simb.d));
+                        $$.tipo = simb.t;
+                        $$.d = simb.d;
                     }
                     | ID_ CORA_ expre CORC_ ASIG_ expre {
                         if ($3.tipo != T_ENTERO) {
@@ -229,6 +267,11 @@ expre               : expreLogic { $$ = $1; }
                                 DIM dim = obtTdA(simb.ref);
                                 if (dim.telem != $6.tipo) {
                                     yyerror("El tipo del array no coincide con el de la variable");
+                                } else {
+                                    emite(EVA, crArgPos(simb.n, simb.d), crArgPos(niv, $3.d), crArgPos(niv, $6.d));
+                                    $$.tipo = dim.telem;
+                                    $$.d = creaVarTemp();
+                                    emite(EASIG, crArgPos(niv, $6.d), crArgNul(), crArgPos(niv, $$.d));
                                 }
                             }
                         }
@@ -245,6 +288,15 @@ expreLogic          : expreIgual { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
+
+                        $$.d = creaVarTemp();
+                        if ($2.cod == EAND) {  // &&
+                            emite(EMULT, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
+                        } else {    // ||
+                            emite(ESUM, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
+                            emite(EMEN, crArgPos(niv, $$.d), crArgEnt(1), crArgEtq(si + 2));
+                            emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
+                        }
                     }
                     ;
 expreIgual          : expreRel { $$ = $1; }
@@ -253,6 +305,11 @@ expreIgual          : expreRel { $$ = $1; }
                             yyerror("Los tipos de la expresión Igual no coinciden");
                         }
                         $$.tipo = $2.tipo;
+
+                        $$.d = creaVarTemp();
+                        emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
+                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(si + 2));
+                        emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
                     }
                     ;
 expreRel            : expreAd { $$ = $1; }
@@ -265,6 +322,11 @@ expreRel            : expreAd { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
+
+                        $$.d = creaVarTemp();
+                        emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
+                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(si + 2));
+                        emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
                     }
                     ;
 expreAd             : expreMul { $$ = $1; }
@@ -277,6 +339,9 @@ expreAd             : expreMul { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
+
+                        $$.d = creaVarTemp();
+                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
                     }
                     ;
 expreMul            : expreUna { $$ = $1; }
@@ -289,6 +354,9 @@ expreMul            : expreUna { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
+
+                        $$.d = creaVarTemp();
+                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
                     }
                     ;
 expreUna            : expreSufi { $$ = $1; }
@@ -297,6 +365,17 @@ expreUna            : expreSufi { $$ = $1; }
                             yyerror("Los tipos de la expresión Una no coinciden");
                         } 
                         $$.tipo = $1.tipo;
+
+                        $$.d = creaVarTemp();
+                        if ($1.cod == ENOT) {  // !
+                            emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
+                            emite(EDIST, crArgPos(niv, $2.d), crArgEnt(0), crArgEtq(si + 2));
+                            emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
+                        } else if ($1.cod == ESIG) {  // -
+                            emite($1.cod, crArgPos(niv, $2.d), crArgNul(), crArgPos(niv, $$.d));
+                        } else {    // +
+                            emite($1.cod, crArgPos(niv, $2.d), crArgEnt(0), crArgPos(niv, $$.d));
+                        }
                     }
                     ;
 expreSufi           : const { $$ = $1; }
@@ -304,6 +383,8 @@ expreSufi           : const { $$ = $1; }
                     | ID_ { 
                         SIMB simb = obtTdS($1);
                         $$.tipo = simb.t;
+
+                        $$.d = simb.d;
                     }
                     | ID_ CORA_ expre CORC_ {
                         int tipo = T_ENTERO;
@@ -316,6 +397,9 @@ expreSufi           : const { $$ = $1; }
                             } else {
                                 DIM dim = obtTdA(simb.ref);
                                 tipo = dim.telem;
+                                
+                                $$.d = creaVarTemp();
+                                emite(EAV, crArgPos(simb.n, simb.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
                             }
                         }
                         $$.tipo = tipo;
@@ -338,6 +422,8 @@ expreSufi           : const { $$ = $1; }
                             }
                         }
                         $$.tipo = tipo;
+
+                        $$.d = simb.d;
                     }
                     ;
 paramAct            : { $$ = insTdD(-1, T_VACIO); }
@@ -350,26 +436,26 @@ listParamAct        : expre {
                         $$ = insTdD($3, $1.tipo); 
                     }
                     ;
-opLogic             : AND_ { $$.tipo = T_LOGICO; }
-                    | OR_ { $$.tipo = T_LOGICO; }
+opLogic             : AND_ { $$.tipo = T_LOGICO; $$.cod = EAND; }
+                    | OR_ { $$.tipo = T_LOGICO; $$.cod = EOR; }
                     ;
-opIgual             : EQUAL_ { $$.tipo = T_LOGICO; }
-                    | NEQUAL_ { $$.tipo = T_LOGICO; }
+opIgual             : EQUAL_ { $$.tipo = T_LOGICO; $$.cod = EIGUAL; }
+                    | NEQUAL_ { $$.tipo = T_LOGICO; $$.cod = EDIST; }
                     ;
-opRel               : MAYOR_ { $$.tipo = T_LOGICO; }
-                    | MENOR_ { $$.tipo = T_LOGICO; }
-                    | MAIG_ { $$.tipo = T_LOGICO; }
-                    | MEIG_ { $$.tipo = T_LOGICO; }
+opRel               : MAYOR_ { $$.tipo = T_LOGICO; $$.cod = EMAY; }
+                    | MENOR_ { $$.tipo = T_LOGICO; $$.cod = EMEN; }
+                    | MAIG_ { $$.tipo = T_LOGICO; $$.cod = EMAYEQ; }
+                    | MEIG_ { $$.tipo = T_LOGICO; $$.cod = EMENEQ; }
                     ;
-opAd                : MAS_ { $$.tipo = T_ENTERO; }
-                    | MENOS_ { $$.tipo = T_ENTERO; }
+opAd                : MAS_ { $$.tipo = T_ENTERO; $$.cod = ESUM; }
+                    | MENOS_ { $$.tipo = T_ENTERO; $$.cod = EDIF; }
                     ;
-opMul               : POR_ { $$.tipo = T_ENTERO; }
-                    | DIV_ { $$.tipo = T_ENTERO; }
+opMul               : POR_ { $$.tipo = T_ENTERO; $$.cod = EMULT; }
+                    | DIV_ { $$.tipo = T_ENTERO; $$.cod = EDIVI; }
                     ;
-opUna               : MAS_ { $$.tipo = T_ENTERO; }
-                    | MENOS_ { $$.tipo = T_ENTERO; }
-                    | EXCL_ { $$.tipo = T_LOGICO; }
+opUna               : MAS_ { $$.tipo = T_ENTERO; $$.cod = ESUM; }
+                    | MENOS_ { $$.tipo = T_ENTERO; $$.cod = ESIG; }
+                    | EXCL_ { $$.tipo = T_LOGICO; $$.cod = ENOT; }
                     ;
 
 %%
