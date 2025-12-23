@@ -46,7 +46,9 @@
 
 %%
 
-programa            : { niv = 0; dvar = 0; numMain = 0; cargaContexto(niv); } listDecla {
+programa            : { 
+                        niv = 0; dvar = 0; numMain = 0; cargaContexto(niv);
+                    } listDecla {
                         SIMB simb = obtTdS("main");
                         if (simb.t == T_ERROR) {
                             yyerror("No existe la función main");
@@ -54,6 +56,8 @@ programa            : { niv = 0; dvar = 0; numMain = 0; cargaContexto(niv); } li
                         if (numMain > 1) {
                             yyerror("El programa tiene mas de un main");
                         }
+
+                        emite(FIN, crArgNul(), crArgNul(), crArgNul());
                     }
                     ;
 listDecla           : decla
@@ -81,7 +85,7 @@ declaVar            : tipoSimp ID_ PYC_
                             yyerror("La variable ya existe");
                         } else {
                             SIMB simb = obtTdS($2);
-                            emite(EASIG, crArgPos(niv, $4.d), crArgNul(), crArgPos(simb.n, simb.d));
+                            emite(EASIG, crArgPos($4.n, $4.d), crArgNul(), crArgPos(simb.n, simb.d));
                             dvar += TALLA_TIPO_SIMPLE;
                         }
                     }
@@ -100,9 +104,9 @@ declaVar            : tipoSimp ID_ PYC_
                     }
                     
                     ;
-const               : CTE_ { $$.tipo = T_ENTERO; $$.valor = $1; $$.d = creaVarTemp(); emite(EASIG, crArgEnt($1), crArgNul(), crArgPos(niv, $$.d)); }
-                    | TRUE_ { $$.tipo = T_LOGICO; $$.valor = 1; $$.d = creaVarTemp(); emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d)); }
-                    | FALSE_ { $$.tipo = T_LOGICO; $$.valor = 0; $$.d = creaVarTemp(); emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d)); }
+const               : CTE_ { $$.tipo = T_ENTERO; $$.valor = $1; $$.n = niv; $$.d = creaVarTemp(); emite(EASIG, crArgEnt($1), crArgNul(), crArgPos($$.n, $$.d)); }
+                    | TRUE_ { $$.tipo = T_LOGICO; $$.valor = 1; $$.n = niv; $$.d = creaVarTemp(); emite(EASIG, crArgEnt(1), crArgNul(), crArgPos($$.n, $$.d)); }
+                    | FALSE_ { $$.tipo = T_LOGICO; $$.valor = 0; $$.n = niv; $$.d = creaVarTemp(); emite(EASIG, crArgEnt(0), crArgNul(), crArgPos($$.n, $$.d)); }
                     ;
 tipoSimp            : INT_ { $$ = T_ENTERO; }
                     | BOOL_ { $$ = T_LOGICO; }
@@ -162,7 +166,9 @@ listParamForm       : tipoSimp ID_ {
                         }
                     }
                     ;
-bloque              : LLAA_ declaVarLocal listInt RETURN_ { numLinea = yylineno; } expre PYC_ LLAC_ { $$ = $6; }
+bloque              : LLAA_ declaVarLocal listInt RETURN_ { numLinea = yylineno; } expre PYC_ LLAC_ {
+                        $$ = $6; 
+                    }
                     ;
 declaVarLocal       : 
                     | declaVarLocal declaVar
@@ -192,7 +198,7 @@ instEntSal          : READ_ PARA_ ID_ PARC_ PYC_ {
                             yyerror("La expresion del print debe ser de tipo simple");
                         }
 
-                        emite(EWRITE, crArgNul(), crArgNul(), crArgPos(niv, $3.d));
+                        emite(EWRITE, crArgNul(), crArgNul(), crArgPos($3.n, $3.d));
                     }
                     ;
 instSelec           : IF_ PARA_ expre PARC_ {
@@ -201,7 +207,7 @@ instSelec           : IF_ PARA_ expre PARC_ {
                         }
 
                         $<ent>$ = creaLans(si); 
-                        emite(EIGUAL, crArgPos(niv, $3.d), crArgEnt(0), crArgNul());
+                        emite(EIGUAL, crArgPos($3.n, $3.d), crArgEnt(0), crArgNul());
                     } inst {
                         $<ent>$ = creaLans(si);
                         emite(GOTOS, crArgNul(), crArgNul(), crArgNul());
@@ -214,7 +220,7 @@ instIter            : FOR_ PARA_ expreOP PYC_ {
                         $<ent>$ = si;
                     } expre PYC_ {
                         $<ent>$ = creaLans(si);
-                        emite(EIGUAL, crArgPos(niv, $6.d), crArgEnt(0), crArgNul());
+                        emite(EIGUAL, crArgPos($6.n, $6.d), crArgEnt(0), crArgNul());
                     }
                     {  
                         $<ent>$ = creaLans(si);
@@ -252,9 +258,10 @@ expre               : expreLogic { $$ = $1; }
                         }
                         $$.tipo = T_ENTERO;
 
-                        emite(EASIG, crArgPos(niv, $3.d), crArgNul(), crArgPos(simb.n, simb.d));
+                        emite(EASIG, crArgPos($3.n, $3.d), crArgNul(), crArgPos(simb.n, simb.d));
                         $$.tipo = simb.t;
-                        $$.d = simb.d;
+                        $$.d = $3.d;
+                        $$.n = $3.n;
                     }
                     | ID_ CORA_ expre CORC_ ASIG_ expre {
                         if ($3.tipo != T_ENTERO) {
@@ -268,10 +275,9 @@ expre               : expreLogic { $$ = $1; }
                                 if (dim.telem != $6.tipo) {
                                     yyerror("El tipo del array no coincide con el de la variable");
                                 } else {
-                                    emite(EVA, crArgPos(simb.n, simb.d), crArgPos(niv, $3.d), crArgPos(niv, $6.d));
-                                    $$.tipo = dim.telem;
-                                    $$.d = creaVarTemp();
-                                    emite(EASIG, crArgPos(niv, $6.d), crArgNul(), crArgPos(niv, $$.d));
+                                    emite(EVA, crArgPos(simb.n, simb.d), crArgPos($3.n, $3.d), crArgPos($6.n, $6.d));
+                                    $$.n = $6.n;
+                                    $$.d = $6.d;
                                 }
                             }
                         }
@@ -288,14 +294,14 @@ expreLogic          : expreIgual { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
-
+                        $$.n = niv;
                         $$.d = creaVarTemp();
                         if ($2.cod == EAND) {  // &&
-                            emite(EMULT, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
+                            emite(EMULT, crArgPos($1.n, $1.d), crArgPos($3.n, $3.d), crArgPos($$.n, $$.d));
                         } else {    // ||
-                            emite(ESUM, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
-                            emite(EMEN, crArgPos(niv, $$.d), crArgEnt(1), crArgEtq(si + 2));
-                            emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
+                            emite(ESUM, crArgPos($1.n, $1.d), crArgPos($3.n, $3.d), crArgPos($$.n, $$.d));
+                            emite(EMEN, crArgPos($$.n, $$.d), crArgEnt(1), crArgEtq(si + 2));
+                            emite(EASIG, crArgEnt(1), crArgNul(), crArgPos($$.n, $$.d));
                         }
                     }
                     ;
@@ -305,11 +311,11 @@ expreIgual          : expreRel { $$ = $1; }
                             yyerror("Los tipos de la expresión Igual no coinciden");
                         }
                         $$.tipo = $2.tipo;
-
+                        $$.n = niv;
                         $$.d = creaVarTemp();
-                        emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
-                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(si + 2));
-                        emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
+                        emite(EASIG, crArgEnt(1), crArgNul(), crArgPos($$.n, $$.d));
+                        emite($2.cod, crArgPos($1.n, $1.d), crArgPos($3.n, $3.d), crArgEtq(si + 2));
+                        emite(EASIG, crArgEnt(0), crArgNul(), crArgPos($$.n, $$.d));
                     }
                     ;
 expreRel            : expreAd { $$ = $1; }
@@ -322,11 +328,11 @@ expreRel            : expreAd { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
-
+                        $$.n = niv;
                         $$.d = creaVarTemp();
-                        emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
-                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(si + 2));
-                        emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
+                        emite(EASIG, crArgEnt(1), crArgNul(), crArgPos($$.n, $$.d));
+                        emite($2.cod, crArgPos($1.n, $1.d), crArgPos($3.n, $3.d), crArgEtq(si + 2));
+                        emite(EASIG, crArgEnt(0), crArgNul(), crArgPos($$.n, $$.d));
                     }
                     ;
 expreAd             : expreMul { $$ = $1; }
@@ -339,9 +345,9 @@ expreAd             : expreMul { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
-
+                        $$.n = niv;
                         $$.d = creaVarTemp();
-                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
+                        emite($2.cod, crArgPos($1.n, $1.d), crArgPos($3.n, $3.d), crArgPos($$.n, $$.d));
                     }
                     ;
 expreMul            : expreUna { $$ = $1; }
@@ -354,9 +360,9 @@ expreMul            : expreUna { $$ = $1; }
                             }
                         }
                         $$.tipo = $2.tipo;
-
+                        $$.n = niv;
                         $$.d = creaVarTemp();
-                        emite($2.cod, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
+                        emite($2.cod, crArgPos($1.n, $1.d), crArgPos($3.n, $3.d), crArgPos($$.n, $$.d));
                     }
                     ;
 expreUna            : expreSufi { $$ = $1; }
@@ -365,16 +371,16 @@ expreUna            : expreSufi { $$ = $1; }
                             yyerror("Los tipos de la expresión Una no coinciden");
                         } 
                         $$.tipo = $1.tipo;
-
+                        $$.n = niv;
                         $$.d = creaVarTemp();
                         if ($1.cod == ENOT) {  // !
-                            emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
-                            emite(EDIST, crArgPos(niv, $2.d), crArgEnt(0), crArgEtq(si + 2));
-                            emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
+                            emite(EASIG, crArgEnt(0), crArgNul(), crArgPos($$.n, $$.d));
+                            emite(EDIST, crArgPos($2.n, $2.d), crArgEnt(0), crArgEtq(si + 2));
+                            emite(EASIG, crArgEnt(1), crArgNul(), crArgPos($$.n, $$.d));
                         } else if ($1.cod == ESIG) {  // -
-                            emite($1.cod, crArgPos(niv, $2.d), crArgNul(), crArgPos(niv, $$.d));
+                            emite($1.cod, crArgPos($2.n, $2.d), crArgNul(), crArgPos($$.n, $$.d));
                         } else {    // +
-                            emite($1.cod, crArgPos(niv, $2.d), crArgEnt(0), crArgPos(niv, $$.d));
+                            emite($1.cod, crArgPos($2.n, $2.d), crArgEnt(0), crArgPos($$.n, $$.d));
                         }
                     }
                     ;
@@ -383,8 +389,8 @@ expreSufi           : const { $$ = $1; }
                     | ID_ { 
                         SIMB simb = obtTdS($1);
                         $$.tipo = simb.t;
-
                         $$.d = simb.d;
+                        $$.n = simb.n;
                     }
                     | ID_ CORA_ expre CORC_ {
                         int tipo = T_ENTERO;
@@ -399,7 +405,8 @@ expreSufi           : const { $$ = $1; }
                                 tipo = dim.telem;
                                 
                                 $$.d = creaVarTemp();
-                                emite(EAV, crArgPos(simb.n, simb.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
+                                $$.n = niv;
+                                emite(EAV, crArgPos(simb.n, simb.d), crArgPos($3.n, $3.d), crArgPos($$.n, $$.d));
                             }
                         }
                         $$.tipo = tipo;
@@ -422,8 +429,8 @@ expreSufi           : const { $$ = $1; }
                             }
                         }
                         $$.tipo = tipo;
-
                         $$.d = simb.d;
+                        $$.n = simb.n;
                     }
                     ;
 paramAct            : { $$ = insTdD(-1, T_VACIO); }

@@ -32,6 +32,7 @@ typedef struct tCons {
     int valor;  // si bool, 1 para true 0 para false
     int d;      // desplazamiento en el segmento de variables
     int cod;    // codigo de operacion
+    int n;
 } TCONS;
 
 #define EAND       29
