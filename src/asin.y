@@ -7,6 +7,8 @@
 #include "libtds.h"
 #include "libgci.h"
 
+int esMain = 0; /* Flag para detectar si estamos en la función main */
+
 %}
 
 %token MAS_ MENOS_ POR_ DIV_ PARA_ PARC_ AND_ OR_ EQUAL_ NEQUAL_ MAYOR_ MENOR_ MAIG_ MEIG_ EXCL_ ASIG_ TRUE_ FALSE_ FOR_ IF_ ELSE_ CORA_ CORC_ LLAA_ LLAC_ READ_ PRINT_ RETURN_ PYC_ COMA_ INT_ BOOL_ 
@@ -47,7 +49,15 @@
 %%
 
 programa            : { 
-                        niv = 0; dvar = 0; numMain = 0; cargaContexto(niv);
+                        niv = 0; dvar = 0; numMain = 0; 
+                        cargaContexto(niv);
+
+                        emite(INCTOP, crArgNul(), crArgNul(), crArgNul());
+                        $<ent>$ = creaLans(si - 1);
+                    } 
+                    {
+                        emite(GOTOS, crArgNul(), crArgNul(), crArgNul());
+                        $<ent>$ = creaLans(si - 1);
                     } listDecla {
                         SIMB simb = obtTdS("main");
                         if (simb.t == T_ERROR) {
@@ -56,7 +66,9 @@ programa            : {
                         if (numMain > 1) {
                             yyerror("El programa tiene mas de un main");
                         }
-
+                        
+                        completaLans($<ent>1, crArgEnt(dvar));
+                        completaLans($<ent>2, crArgEtq(simb.d));
                         emite(FIN, crArgNul(), crArgNul(), crArgNul());
                     }
                     ;
@@ -120,11 +132,14 @@ declaFunc           : tipoSimp ID_ {
                             $2[2] == 'i' && $2[3] == 'n' &&
                             $2[4] == '\0') {
                             numMain++;
+                            esMain = 1; 
+                        } else {
+                            esMain = 0;
                         }
                     } PARA_ paramForm PARC_ {
                         $<ent>$ = 1;
                         int refe = $5;
-                        if(!insTdS($2, FUNCION, $1, niv - 1, yylineno, refe)) {
+                        if(!insTdS($2, FUNCION, $1, niv - 1, si, refe)) {
                             yyerror("La función ya existe");
                             $<ent>$ = 0;
                         }
@@ -166,8 +181,25 @@ listParamForm       : tipoSimp ID_ {
                         }
                     }
                     ;
-bloque              : LLAA_ declaVarLocal listInt RETURN_ { numLinea = yylineno; } expre PYC_ LLAC_ {
-                        $$ = $6; 
+bloque              : LLAA_ {
+                        emite(PUSHFP, crArgNul(), crArgNul(), crArgNul());
+                        emite(FPTOP, crArgNul(), crArgNul(), crArgNul());
+                        emite(INCTOP, crArgNul(), crArgNul(), crArgNul());
+                        $<ent>$ = creaLans(si - 1);
+                    } declaVarLocal {
+                        completaLans($<ent>2, crArgEnt(dvar));
+                    } listInt RETURN_ { numLinea = yylineno; } expre PYC_ LLAC_ {
+                        $$ = $8;
+
+                        emite(DECTOP, crArgNul(), crArgNul(), crArgEnt(dvar));
+                
+                        emite(FPPOP, crArgNul(), crArgNul(), crArgNul());
+                        
+                        if (esMain) {
+                            emite(FIN, crArgNul(), crArgNul(), crArgNul());
+                        } else {
+                            emite(RET, crArgNul(), crArgNul(), crArgNul());
+                        }
                     }
                     ;
 declaVarLocal       : 
@@ -229,7 +261,7 @@ instIter            : FOR_ PARA_ expreOP PYC_ {
                     {    
                         $<ent>$ = si;
                     } expreOP PARC_ {
-                        if ($3.tipo != T_ENTERO || $11.tipo != T_ENTERO) {
+                        if (($3.tipo != T_ENTERO && $3.tipo != T_LOGICO) || ($11.tipo != T_ENTERO && $11.tipo != T_LOGICO)) {
                             yyerror("La expreOp del for debe ser de tipo simple");
                         }
                         if ($6.tipo != T_LOGICO) {
