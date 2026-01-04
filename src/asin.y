@@ -8,6 +8,7 @@
 #include "libgci.h"
 
 int esMain = 0; /* Flag para detectar si estamos en la función main */
+int despRetorno = 0; /* Nueva variable para guardar la dirección del retorno */
 
 %}
 
@@ -127,7 +128,7 @@ declaFunc           : tipoSimp ID_ {
                         $<ent>$ = dvar;
                         niv++; 
                         cargaContexto(niv); 
-                        dvar = -TALLA_SEG_ENLACES;
+                        dvar = -(TALLA_SEG_ENLACES + TALLA_TIPO_SIMPLE);
                         if ($2[0] == 'm' && $2[1] == 'a' &&
                             $2[2] == 'i' && $2[3] == 'n' &&
                             $2[4] == '\0') {
@@ -143,6 +144,7 @@ declaFunc           : tipoSimp ID_ {
                             yyerror("La función ya existe");
                             $<ent>$ = 0;
                         }
+                        despRetorno = dvar;
                         dvar = 0;
                     } bloque
                     {
@@ -186,18 +188,19 @@ bloque              : LLAA_ {
                         emite(FPTOP, crArgNul(), crArgNul(), crArgNul());
                         emite(INCTOP, crArgNul(), crArgNul(), crArgNul());
                         $<ent>$ = creaLans(si - 1);
-                    } declaVarLocal {
+                    } declaVarLocal listInt RETURN_ { numLinea = yylineno; } expre PYC_ LLAC_ {
+                        $$ = $7;
+                        
                         completaLans($<ent>2, crArgEnt(dvar));
-                    } listInt RETURN_ { numLinea = yylineno; } expre PYC_ LLAC_ {
-                        $$ = $8;
+
+                        if (!esMain) {
+                            emite(EASIG, crArgPos($7.n, $7.d), crArgNul(), crArgPos(niv, despRetorno));
+                        }
 
                         emite(DECTOP, crArgNul(), crArgNul(), crArgEnt(dvar));
-                
                         emite(FPPOP, crArgNul(), crArgNul(), crArgNul());
                         
-                        if (esMain) {
-                            emite(FIN, crArgNul(), crArgNul(), crArgNul());
-                        } else {
+                        if (!esMain) {
                             emite(RET, crArgNul(), crArgNul(), crArgNul());
                         }
                     }
@@ -443,26 +446,38 @@ expreSufi           : const { $$ = $1; }
                         }
                         $$.tipo = tipo;
                     }
-                    | ID_ PARA_ paramAct PARC_ {
+                    | ID_ PARA_ {
+                        SIMB simb = obtTdS($1);
+                        if (simb.t != T_ERROR) {
+                            emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(TALLA_TIPO_SIMPLE));
+                        }
+                    } paramAct PARC_ {
                         int tipo = T_ENTERO;
                         SIMB simb = obtTdS($1);
+                        INF inf = obtTdD(simb.ref);
+
                         if (simb.t != T_ENTERO && simb.t != T_LOGICO) {
                             yyerror("La función no está declarada");
                         } else {
-                            INF inf = obtTdD(simb.ref);
                             if (inf.tipo == T_ERROR) {
                                 yyerror("El objeto no es una función");
                             } else {
-                                if(!cmpDom(simb.ref, $3)) {
+                                if(!cmpDom(simb.ref, $4)) {
                                     yyerror("El tipo de los parámetros no coincide");
                                 } else {
                                     tipo = inf.tipo;
                                 }
                             }
                         }
+                        
+                        emite(CALL, crArgNul(), crArgNul(), crArgEtq(simb.d));
+                        
+                        emite(DECTOP, crArgNul(), crArgNul(), crArgEnt(inf.tsp));
+                        
                         $$.tipo = tipo;
-                        $$.d = simb.d;
-                        $$.n = simb.n;
+                        $$.n = niv;
+                        $$.d = creaVarTemp();
+                        emite(EPOP, crArgNul(), crArgNul(), crArgPos($$.n, $$.d));
                     }
                     ;
 paramAct            : { $$ = insTdD(-1, T_VACIO); }
@@ -470,9 +485,12 @@ paramAct            : { $$ = insTdD(-1, T_VACIO); }
                     ;
 listParamAct        : expre {
                         $$ = insTdD(-1, $1.tipo);
+                        emite(EPUSH, crArgNul(), crArgNul(), crArgPos($1.n, $1.d));
                     }
-                    | expre COMA_ listParamAct {
-                        $$ = insTdD($3, $1.tipo); 
+                    | expre {
+                        emite(EPUSH, crArgNul(), crArgNul(), crArgPos($1.n, $1.d));
+                    } COMA_ listParamAct {
+                        $$ = insTdD($4, $1.tipo); 
                     }
                     ;
 opLogic             : AND_ { $$.tipo = T_LOGICO; $$.cod = EAND; }

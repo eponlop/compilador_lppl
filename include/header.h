@@ -37,7 +37,7 @@ typedef struct tCons {
 
 #define EAND       29
 #define EOR        30
-#define ENOT        30
+#define ENOT       30
 
 #endif  /* _HEADER_H */
 /*****************************************************************************/
