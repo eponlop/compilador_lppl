@@ -6,10 +6,6 @@
 #include "header.h"
 #include "libtds.h"
 #include "libgci.h"
-
-int esMain = 0; /* Flag para detectar si estamos en la función main */
-int despRetorno = 0; /* Nueva variable para guardar la dirección del retorno */
-
 %}
 
 %token MAS_ MENOS_ POR_ DIV_ PARA_ PARC_ AND_ OR_ EQUAL_ NEQUAL_ MAYOR_ MENOR_ MAIG_ MEIG_ EXCL_ ASIG_ TRUE_ FALSE_ FOR_ IF_ ELSE_ CORA_ CORC_ LLAA_ LLAC_ READ_ PRINT_ RETURN_ PYC_ COMA_ INT_ BOOL_ 
@@ -50,7 +46,7 @@ int despRetorno = 0; /* Nueva variable para guardar la dirección del retorno */
 %%
 
 programa            : { 
-                        niv = 0; dvar = 0; numMain = 0; 
+                        niv = 0; dvar = 0; numMain = 0; esMain = 0; despRetorno = 0;
                         cargaContexto(niv);
 
                         emite(INCTOP, crArgNul(), crArgNul(), crArgNul());

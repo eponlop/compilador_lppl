@@ -96,7 +96,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 43 "src/asin.y"
+#line 40 "src/asin.y"
 
     char *ident;
     int ent;

@@ -45,6 +45,9 @@
 /*************************** Variables globales de uso en todo el compilador */
 extern int si;                       /* Desplazamiento en el Segmento de Codigo     */
 
+int esMain; /* Flag para detectar si estamos en la función main */
+int despRetorno; /* Nueva variable para guardar la dirección del retorno */
+
 /*****************************************************************************/
 typedef struct tipo_arg /****** Estructura para los argumentos del codigo 3D */
 {              
